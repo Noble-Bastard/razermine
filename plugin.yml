@@ -1,0 +1,24 @@
+name: HubCores
+main: LosharaSUKA\Main
+api: 3.0.0
+author: Noblesse
+version: 1.0
+commands:
+  addkarma:
+   description: Тебе не доступна данная команда
+  leave:
+   description: Back To Lobby
+  quit:
+   description: Back To Lobby
+  lobby:
+   description: Back To Lobby
+  spawn:
+   description: Back To Lobby
+  hub:
+   description: Back To Lobby
+  setgroup:
+   description: Тебе не доступна данная команда
+  groups:
+   description: Тебе не доступна данная команда
+  prefix:
+   description: loа
