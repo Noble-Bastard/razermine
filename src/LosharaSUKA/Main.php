@@ -47,8 +47,6 @@ use LosharaSUKA\ScoreBoard;
 use LosharaSUKA\CpsTask;
 use LosharaSUKA\TopsTask;
 
-use LosharaSUKA\Commands\AddKarma;
-
 use function array_unshift;
 use function array_pop;
 use function microtime;
@@ -64,13 +62,6 @@ class Main extends PluginBase implements Listener
     public function onLoad(): void
     {
         self::$instance = $this;
-
-        $commands = [
-            new AddKarma($this, "addkarma", "Тебе не доступна данная команда", "operator"),
-        ];
-
-        foreach($commands as $command)
-                $this->getServer()->getCommandMap()->register($this->getName(), $command);
     }
 
     public $gaming = array();
@@ -1606,6 +1597,24 @@ class Main extends PluginBase implements Listener
     public function onCommand(CommandSender $p, Command $cmd, $label, array $args): bool
     {
         switch ($cmd->getName()) {
+            case "addkarma":
+                if ($p->isOp()) {
+                    if (count($args) < 2) {
+                        $p->sendMessage("§7› §fИспользование: §b/addcoins <игрок> <кол-во>");
+                        return true;
+                    }
+                    if (!is_numeric($args[1])) {
+                        $p->sendMessage("§7› §cКоличество коинов должно быть только в цифрах!");
+                        return true;
+                    }
+                    $player = $args[0];
+                    $this->addKarma($player, $args[1]);
+                    return true;
+                } else {
+                    $p->sendMessage("§7gg");
+                    return true;
+                }
+                break;
             case "setgroup":
                 if ($p->isOp() or $this->getCountGroup($p->getName()) >= 7) {
                     if (count($args) < 2) {
