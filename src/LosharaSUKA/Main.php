@@ -2,57 +2,61 @@
 
 namespace LosharaSUKA;
 
-use pocketmine\command\Command;
-use pocketmine\command\CommandSender;
-use pocketmine\item\Item;
-use pocketmine\Player;
-use pocketmine\event\Listener;
 use pocketmine\plugin\PluginBase;
+use pocketmine\event\Listener;
+
+use pocketmine\item\Item;
 use pocketmine\utils\Config;
 use pocketmine\math\Vector3;
-use pocketmine\Server;
-use pocketmine\event\player\PlayerJoinEvent;
+
+use pocketmine\{Player, Server};
+
 use pocketmine\network\mcpe\protocol\{
     RemoveObjectivePacket,
     SetDisplayObjectivePacket,
     SetScorePacket,
     types\ScorePacketEntry
 };
-use pocketmine\level\particle\DestroyBlockParticle;
-use pocketmine\block\Block;
-use pocketmine\event\player\PlayerQuitEvent;
-use pocketmine\event\block\BlockBreakEvent;
-use pocketmine\event\block\BlockPlaceEvent;
-use pocketmine\event\player\PlayerDropItemEvent;
-use pocketmine\event\player\PlayerExhaustEvent;
-use pocketmine\event\player\PlayerCommandPreprocessEvent;
-use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\player\PlayerMoveEvent;
-use pocketmine\event\server\DataPacketReceiveEvent;
-use pocketmine\level\particle\FloatingTextParticle;
-use pocketmine\level\particle\GenericParticle;
-use pocketmine\network\mcpe\protocol\LoginPacket;
-use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
-use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
-use pocketmine\network\mcpe\protocol\ChangeDimensionPacket;
-use pocketmine\network\mcpe\protocol\types\DimensionIds;
-use pocketmine\network\mcpe\protocol\PlayerActionPacket;
-use pocketmine\level\particle\Particle;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\item\enchantment\Enchantment;
-use pocketmine\item\enchantment\EnchantmentInstance;
-use LosharaSUKA\Tasks\ScoreBoard;
-use LosharaSUKA\Tasks\CpsTask;
-use LosharaSUKA\Tasks\TopsTask;
 
-use LosharaSUKA\Commands\AddKarma;
-use LosharaSUKA\Commands\Groups;
-use LosharaSUKA\Commands\SetGroup;
-use LosharaSUKA\Commands\Prefix;
-use LosharaSUKA\Commands\Lobby;
-use LosharaSUKA\Commands\Hub;
+use pocketmine\event\player\{
+    PlayerQuitEvent,
+    PlayerJoinEvent, 
+    PlayerDropItemEvent, 
+    PlayerExhaustEvent, 
+    PlayerCommandPreprocessEvent, 
+    PlayerChatEvent, 
+    PlayerInteractEvent, 
+    PlayerMoveEvent
+};
+
+use pocketmine\event\block\{BlockBreakEvent, BlockPlaceEvent};
+use pocketmine\event\entity\{EntityDamageEvent, EntityDamageByEntityEvent};
+
+use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\level\particle\{GenericParticle, FloatingTextParticle};
+
+use pocketmine\network\mcpe\protocol\{LoginPacket, 
+    InventoryTransactionPacket, 
+    LevelSoundEventPacket, 
+    PlayerActionPacket
+};
+
+use pocketmine\level\particle\Particle;
+
+use LosharaSUKA\Tasks\{
+    ScoreBoard, 
+    CpsTask, 
+    TopsTask
+};
+
+use LosharaSUKA\Commands\{
+    AddKarma, 
+    Groups, 
+    SetGroup, 
+    Prefix, 
+    Lobby, 
+    Hub
+};
 
 use function array_unshift;
 use function array_pop;
@@ -91,7 +95,6 @@ class Main extends PluginBase implements Listener
 
     /** @var bool */
     private $countLeftClickBlock;
-    private $IPs = [];
 
     /** @var array[] */
     private $clicksData = [];
