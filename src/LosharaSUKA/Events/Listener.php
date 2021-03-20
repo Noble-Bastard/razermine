@@ -3,23 +3,37 @@
 namespace LosharaSUKA\Events;
 
 use LosharaSUKA\Main;
+use LosharaSUKA\OtherMethods\OtherMethods;
 use LosharaSUKA\Tasks\TopsTask;
+use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\event\block\BlockPlaceEvent;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
+use pocketmine\event\player\PlayerDropItemEvent;
+use pocketmine\event\player\PlayerExhaustEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use jojoe77777\FormAPI\SimpleForm;
+use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\Player;
 use pocketmine\Server;
 
 class EventListener implements Listener
 {
 
-    public function banCommand(PlayerCommandPreprocessEvent $e)
+    private const PARTICLES = [
+        "Flames",
+        "HappyVillager",
+        "LavaDrip",
+        "Hearts"
+    ];
+
+    public function banCommand(PlayerCommandPreprocessEvent $event)
     {
-        $p = $e->getPlayer();
-        $command = $e->getMessage();
-        $banCommand = explode(" ", $e->getMessage());
+        $player = $event->getPlayer();
+        $command = $event->getMessage();
+        $banCommand = explode(" ", $event->getMessage());
         if (
             strtolower($banCommand[0] == "/msg" || $banCommand[0] == "/w"
             || $banCommand[0] == "/tell" || $banCommand[0] == "/me"
@@ -29,25 +43,25 @@ class EventListener implements Listener
             || $banCommand[0] == "/help" || $banCommand[0] == "/info"
             || $banCommand[0] == "/автор" || $banCommand[0] == "/server")
         ) {
-            if (!$p->isOp()) {
-                $content = match ($this->getSettings($p, "Lang")) {
+            if (!$player->isOp()) {
+                $content = match ($this->getSettings($player, "Lang")) {
                     'Russ' => 'Привет друг! Раз ты написал эту комнду, значит ты захотел что-то узнать про сервер.',
                     'Eng' => 'Hello Friend! Since you wrote this command, 
                     then you wanted to know something about the server.',
                     'DW' => 'Hallo Freund! Da Sie dieses Team geschrieben haben, 
                     wollten Sie etwas über den Server wissen',
                 };
-                $p->sendMessage($content);
-                $e->setCancelled();
+                $player->sendMessage($content);
+                $event->setCancelled();
             }
         }
     }
     public function onJoin(PlayerJoinEvent $event)
     {
+        $otherMethodsInstance = new OtherMethods();
         $player = $event->getPlayer();
         $event->setJoinMessage(null);
         $player->setImmobile(false);
-        $this->updateTag($player);
         $player->teleport(Server::getInstance()->getDefaultLevel()->getSafeSpawn());
         Main::getInstance()->getScheduler()->scheduleDelayedTask(new TopsTask($this, $player), 15);
         if (!$player->hasPlayedBefore()) {
@@ -67,89 +81,77 @@ class EventListener implements Listener
             $form->addButton("§b» §f§lSelect Main Language.§r §b«", 0);
             $form->sendToPlayer($player);
         }
-        $this->Main($player);
-        $name = $player->getName();
-        switch ($this->getCountGroup($name)) {
-            case 1:
-                $this->getServer()->broadcastMessage("§7[§a+§7] §aVIP §7$name");
-                $this->setParticleAvailability($player, "Flames", "Available");
-                break;
-            case 2:
-                $this->getServer()->broadcastMessage("§7[§a+§7] §3Premium §7$name");
-                $this->setParticleAvailability($player, "Flames", "Available");
-                $this->setParticleAvailability($player, "HappyVillager", "Available");
-                break;
-            case 3:
-                $this->getServer()->broadcastMessage("§7[§a+§7] §6Holy §7$name");
-                $this->setParticleAvailability($player, "Flames", "Available");
-                $this->setParticleAvailability($player, "HappyVillager", "Available");
-                $this->setParticleAvailability($player, "LavaDrip", "Available");
-                break;
-            case 4:
-                $this->getServer()->broadcastMessage("§7[§a+§7] §dImmortal §7$name");
-                $this->setParticleAvailability($player, "Hearts", "Available");
-                $this->setParticleAvailability($player, "Flames", "Available");
-                $this->setParticleAvailability($player, "HappyVillager", "Available");
-                $this->setParticleAvailability($player, "LavaDrip", "Available");
-                break;
-            case 5:
-                $this->getServer()->broadcastMessage("§7[§a+§7] §cYou§fTube §c$name");
-                $this->setParticleAvailability($player, "Hearts", "Available");
-                $this->setParticleAvailability($player, "Flames", "Available");
-                $this->setParticleAvailability($player, "HappyVillager", "Available");
-                $this->setParticleAvailability($player, "LavaDrip", "Available");
-                break;
-            case 7:
-                $this->getServer()->broadcastMessage("§7[§a+§7] §bCreator §7$name");
-                $this->setParticleAvailability($player, "Hearts", "Available");
-                $this->setParticleAvailability($player, "Flames", "Available");
-                $this->setParticleAvailability($player, "HappyVillager", "Available");
-                $this->setParticleAvailability($player, "LavaDrip", "Available");
-                break;
-            case 8:
-                $this->getServer()->broadcastMessage("§7[§a+§7] §g§lAdmin §7$name");
-                $this->setParticleAvailability($player, "Hearts", "Available");
-                $this->setParticleAvailability($player, "Flames", "Available");
-                $this->setParticleAvailability($player, "HappyVillager", "Available");
-                $this->setParticleAvailability($player, "LavaDrip", "Available");
-                break;
-        }
+        $otherMethodsInstance->rebirthPlayer($player);
     }
 
     public function onDamage(EntityDamageEvent $event): void
     {
-        if ($event->getEntity() instanceof Player) {
+        $entity = $event->getEntity();
+        if ($entity  instanceof Player) {
             if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
                 $event->setCancelled();
 
                 return;
             }
 
-            if (($event->getEntity()->getHealth() - $event->getFinalDamage()) < 1) {
+            if (($entity ->getHealth() - $event->getFinalDamage()) < 1) {
                 $event->setCancelled();
 
-                $event->getEntity()->sendTitle("§l§cDEATH!§r");
-                $this->addDeath($event->getEntity());
+                $entity ->sendTitle("§l§cDEATH!§r");
+                $this->addDeath($entity);
 
                 if ($event instanceof EntityDamageByEntityEvent) {
-                    $d = $event->getDamager();
+                    $damager = $event->getDamager();
+                    $entity = $event->getEntity();
 
-                    $event->getDamager()->addTitle("§l§aKILL!§r", $event->getEntity()->getDisplayName());
-                    $this->addKill($d);
+                    $event->getDamager()->addTitle("§l§aKILL!§r", $entity ->getDisplayName());
+                    $this->addKill($damager);
                     $rand = mt_rand(3, 10);
-                    $this->addKarma($d, $rand);
-                    $d->addTitle("§c§lKill", "§f+ §e{$rand} §fKarma!");
-                    $d->sendPopup("§l§cKILL!§r", $event->getEntity()->getDisplayName());
-                    $message = "§e{$event->getEntity()->getDisplayName()} §fkilled by
+                    $this->addKarma($damager, $rand);
+                    $damager->sendTitle("§c§lKill", "§f+ §e{$rand} §fKarma!");
+                    $damager->sendPopup("§l§cKILL!§r", $entity ->getDisplayName());
+                    $message = "§e{$entity ->getDisplayName()} §fkilled by
                     §e{$event->getDamager()->getDisplayName()}!";
 
                     foreach ($event->getDamager()->getLevel()->getPlayers() as $pl) {
                         $pl->sendMessage($message);
                     }
+                    if ($event->getDamager()->getLevel()->getFolderName() == "world") {
+                        $event->setCancelled();
+                    }
                 }
 
-                Server::getInstance()->dispatchCommand($event->getEntity(), "lobby");
+                Server::getInstance()->dispatchCommand($entity, "lobby");
+            }
+            if ($event instanceof EntityDamageByEntityEvent) {
+                if ($event->getDamager()->getLevel()->getFolderName() == "world") {
+                    $event->setCancelled();
+                }
+            }
+
+            if ($entity ->getLevel()->getFolderName() == "world") {
+                $event->setCancelled(true);
             }
         }
+    }
+
+    public function noPlace(BlockPlaceEvent $event)
+    {
+        $event->setCancelled();
+    }
+
+    public function noBreak(BlockBreakEvent $event)
+    {
+        $event->setCancelled();
+    }
+
+    public function noHunger(PlayerExhaustEvent $event)
+    {
+        $event->setCancelled(true);
+    }
+
+    public function noDrop(PlayerDropItemEvent $event)
+    {
+        $event->setCancelled();
     }
 }

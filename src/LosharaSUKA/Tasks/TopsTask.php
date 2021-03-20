@@ -11,13 +11,15 @@ class TopsTask extends Task
 
     private Main $plugin;
 
-    public function __construct(Main $plugin)
-    {
+    public function __construct(
+        Main $plugin
+    ) {
         $this->plugin = $plugin;
     }
 
-    public function onRun(int $currentTick): void
-    {
+    public function onRun(
+        int $currentTick
+    ): void {
 
         foreach ($this->plugin->getServer()->getOnlinePlayers() as $p) {
             if ($this->plugin->getSettings($p, "Tops") === "on") {
