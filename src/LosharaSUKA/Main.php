@@ -43,9 +43,16 @@ use pocketmine\level\particle\Particle;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\EnchantmentInstance;
-use LosharaSUKA\ScoreBoard;
-use LosharaSUKA\CpsTask;
-use LosharaSUKA\TopsTask;
+use LosharaSUKA\Tasks\ScoreBoard;
+use LosharaSUKA\Tasks\CpsTask;
+use LosharaSUKA\Tasks\TopsTask;
+
+use LosharaSUKA\Commands\AddKarma;
+use LosharaSUKA\Commands\Groups;
+use LosharaSUKA\Commands\SetGroup;
+use LosharaSUKA\Commands\Prefix;
+use LosharaSUKA\Commands\Lobby;
+use LosharaSUKA\Commands\Hub;
 
 use function array_unshift;
 use function array_pop;
@@ -62,6 +69,18 @@ class Main extends PluginBase implements Listener
     public function onLoad(): void
     {
         self::$instance = $this;
+
+        $commands = [
+            new AddKarma($this, "addkarma", "Тебе не доступна данная команда", "operator"),
+            new SetGroup($this, "setgroup", "Тебе не доступна данная команда", "operator"),
+            new Groups($this, "groups", "Тебе не доступна данная команда", "operator"),
+            new Lobby($this, "lobby", "Back To Lobby", "operator", ['quit', 'leave', 'spawn']),
+            new Prefix($this, "prefix", "loа", "operator"),
+            new Hub($this, "hub", "Back To Lobby", "operator"),
+        ];
+
+        foreach($commands as $command)
+                $this->getServer()->getCommandMap()->register($this->getName(), $command);
     }
 
     public $gaming = array();
@@ -1591,99 +1610,6 @@ class Main extends PluginBase implements Listener
         $player->setFood(20);
         if ($player->isOp() or $this->getCountGroup($player->getName()) >= 1) {
             $player->setAllowFlight(true);
-        }
-    }
-
-    public function onCommand(CommandSender $p, Command $cmd, $label, array $args): bool
-    {
-        switch ($cmd->getName()) {
-            case "addkarma":
-                if ($p->isOp()) {
-                    if (count($args) < 2) {
-                        $p->sendMessage("§7› §fИспользование: §b/addcoins <игрок> <кол-во>");
-                        return true;
-                    }
-                    if (!is_numeric($args[1])) {
-                        $p->sendMessage("§7› §cКоличество коинов должно быть только в цифрах!");
-                        return true;
-                    }
-                    $player = $args[0];
-                    $this->addKarma($player, $args[1]);
-                    return true;
-                } else {
-                    $p->sendMessage("§7gg");
-                    return true;
-                }
-                break;
-            case "setgroup":
-                if ($p->isOp() or $this->getCountGroup($p->getName()) >= 7) {
-                    if (count($args) < 2) {
-                        $p->sendMessage("§7› §fИспользование: §b/setgroup <игрок> <статус>");
-                        return true;
-                    }
-                    if ($args[1] == "Player" or $args[1] == "VIP" or $args[1] == "Premium" or $args[1] == "Holy" or $args[1] == "Creator" or $args[1] == "Immortal" or $args[1] == "YouTube" or $args[1] == "Moderator" or $args[1] == "Admin") {
-                        $player = $args[0];
-                        $this->setGroup($player, $args[1]);
-                        $p->sendMessage("§7> §fИгроку §e{$player} была выдана привилегия §e{$args[1]}§f!");
-                        return true;
-                    } else {
-                        $p->sendMessage("§7> §cТЫ ВВЕЛ НЕПРАВИЛЬЫНЙ ДАННЫЕ, ЧУВАК!");
-                        return true;
-                    }
-                } else {
-                    $p->sendMessage("§7> §cgg");
-                    return true;
-                }
-                break;
-
-            case "hub":
-                $p->transfer("95.181.153.160", 19132);
-                return true;
-                break;
-            case "groups":
-                if ($p->isOp()) {
-                    $p->sendMessage("Список привилегии: Player, VIP, Premium, Holy, Creator, Immortal, YouTube, Moderator, Admin");
-                    $p->sendMessage("ВЫДАВАТЬ С ТАКИМ ЖЕ РЕГИСТРОМ КАК И Я НАПИСАЛ ВЫШЕ!!!");
-                    $p->sendMessage("ВЫДАЕШЬ ЧЕРЕЗ ВОТ ТАКУЮ КОМАНДУ: /setgroup (NICKNAME) (GROUP)");
-                    $p->sendMessage("Например: /setgroup noblessediamand VIP");
-                    return true;
-                } else {
-                    $p->sendMessage("§7> §cgg");
-                    return true;
-                }
-                break;
-            case "prefix":
-                if ($p->isOp() or $this->getCountGroup($p->getName()) >= 4) {
-                    if (count($args) < 1) {
-                        $p->sendMessage("§7› §fИспользование: §b/prefix <prefix>");
-                        return true;
-                    }
-                    $prefix = $args[0];
-                    $p->setNameTag("{$prefix} {$p->getName()}");
-                    $p->setDisplayName("{$prefix} " . $p->getName());
-                    return true;
-                } else {
-                    $p->sendMessage("§7> §cgg");
-                    return true;
-                }
-                break;
-            case "quit":
-            case "leave":
-            case "lobby":
-            case "spawn":
-                if ($p->getLevel()->getName() == "world") {
-                    $p->sendMessage("§7› §fТы уже в лобби!");
-                } else {
-                    $server = $this->getServer();
-                    $server->loadLevel("Nether");
-                    $p->teleport($p->getServer()->getLevelByName("Nether")->getSpawnLocation());
-                    $p->teleport($this->getServer()->getDefaultLevel()->getSafeSpawn());
-                    $this->Main($p);
-                }
-                return true;
-
-
-                break;
         }
     }
 
