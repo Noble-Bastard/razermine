@@ -133,11 +133,11 @@ class API extends PDO
     /**
      * insert a record to a table
      *
-     * @param  string $table  table name
-     * @param  array  $data  data array
+     * @param string $table table name
+     * @param array $data data array
      * @return integer Number of effected rows
      */
-    public function insert($table, $data)
+    public function insert(string $table, array $data): int
     {
         $fieldNames = array_keys($data);
         $sql = "INSERT INTO `$table` (" . implode($fieldNames, ", ") .
@@ -438,9 +438,10 @@ class API extends PDO
     /**
      * drop table
      *
-     * @param  string $table  table name
+     * @param string $table table name
+     * @return int
      */
-    public function dropTable($table)
+    public function dropTable(string $table): int
     {
         $sql = "DROP TABLE IF EXISTS `$table`;";
         return $this->run($sql);
@@ -461,7 +462,7 @@ class API extends PDO
     /**
      * commit transaction
      */
-    public function commit()
+    public function commit(): bool
     {
         if (!--$this->_transactionCount) {
             return parent::commit();
@@ -472,7 +473,7 @@ class API extends PDO
     /**
      * rollback transaction
      */
-    public function rollback()
+    public function rollback(): bool
     {
         if (--$this->_transactionCount) {
             $this->exec('ROLLBACK TO trans' . ($this->_transactionCount + 1));
@@ -484,7 +485,7 @@ class API extends PDO
     /**
      * has transaction ?
      */
-    public function hasTransaction()
+    public function hasTransaction(): bool
     {
         return $this->_transactionCount > 0;
     }

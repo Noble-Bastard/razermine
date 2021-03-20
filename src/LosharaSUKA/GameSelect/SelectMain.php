@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LosharaSUKA\GameSelect;
 
+use Exception;
+use InvalidArgumentException;
 use LosharaSUKA\GiveItems\GivePlayer;
 use pocketmine\Player;
 use jojoe77777\FormAPI\SimpleForm;
@@ -59,6 +61,7 @@ final class SelectMain
         'Windows',
         'HoloLens'
     ];
+    private const LOBBYUSAGE = '§fLobby§g ';
 
     private function getOnlineInAreas(
         array $array,
@@ -101,12 +104,12 @@ final class SelectMain
                 0 => 'Gapple',
                 1 => 'NoDebuff',
                 2 => 'Fist',
-                default => throw new \Exception('АЛО БЛЯТЬ КТО ЕЩЕ ОДНУ ФОРМУ СОЗДАЛ ИЛИ МНЕ ПИСАТЬ
-                ДЖОДЖО И ЕМУ ДАВАТЬ ПИЗДЫ ЗА ЕГО АПИ????')
+                default => throw new InvalidArgumentException('АЛО БЛЯТЬ КТО ЕЩЕ ОДНУ ФОРМУ СОЗДАЛ ИЛИ МНЕ
+                ПИСАТЬ ДЖОДЖО И ЕМУ ДАВАТЬ ПИЗДЫ ЗА ЕГО АПИ????')
             };
             $this->selectGame($sender, $game);
         });
-        # $serverInstance = new Server();
+        // $serverInstance = new Server();
         foreach ($mapName as $level) {
             Server::getInstance()->loadLevel($level);
         }
@@ -120,14 +123,14 @@ final class SelectMain
             'Russ' => '§fОбщий онлайн на аренах: §b ' . $online . '\n',
             'Eng' => '§fGeneral online in arenas: §b ' . $online . '\n',
             'DW' => '§fAllgemein online in Arenen: §b ' . $online . '\n',
-            default => throw new \Exception('Произошла Ошибка! Неверный результат!')
+            default => throw new InvalidArgumentException('Произошла Ошибка! Неверный результат!')
         };
 
         $form->setTitle('§l§6-§g- §fPlay §g-§6-');
         $form->setContent($content);
         $form->addButton('§8Gapple FFA\n§e' . $onlineGapple . ' Рlayers', 0, 'textures/items/apple_golden');
         $form->addButton(
-            '§8NoDebuff FFA\n§e' . $onlineGapple . 'Рlayers',
+            '§8NoDebuff FFA\n§e' . $onlineNodebuff . 'Рlayers',
             0,
             'textures/items/potion_bottle_splash_heal'
         );
@@ -156,6 +159,9 @@ final class SelectMain
                 case 2:
                     $this->mainSelectMenu($sender);
                     break;
+                default:
+                    throw new InvalidArgumentException('Мда опять экзепшн кидать кто блять
+                    еще одну кнопку добавил мать его');
             }
         });
         $form->setTitle('§l§r' . $game . ' FFA');
@@ -183,13 +189,15 @@ final class SelectMain
                     $this->selectGame($sender, $game);
                     break;
                 case 1:
-                    $sender->sendMessage('§l§fLobby->§g' . $game . 'FFA§f->' . $gameType . ' KB§f->§gALL');
+                    $sender->sendMessage(self::LOBBYUSAGE . $game . ' FFA§f->' . $gameType . ' KB§f->§gALL');
                     $server = Server::getInstance();
                     $server->loadLevel((string)self::GAMES[$game][$gameType][0]);
                     $server->loadLevel('Nether');
                     $sender->teleport($sender->getServer()->getLevelByName('Nether')->getSpawnLocation());
+
                     $sender->teleport($sender->getServer()->getLevelByName((string)self::GAMES[$game]
                     [$gameType][0])->getSpawnLocation());
+
                     $itemClass->giveItems($sender, $game);
                     break;
                 case 2:
@@ -199,18 +207,20 @@ final class SelectMain
                             'Russ' => '§l§cТы не можешь войти на PC арены!',
                             'Eng' => '§l§cYou cannot enter the PC arenas!',
                             'DW' => '§l§cSie können die PC-Arenen nicht betreten!',
-                            default => throw new \Exception('Неверный результат! ДАЛБАЕБ ТЫ ЧТО БЛЯТЬ
-                            БД РЕДАКТИРОВАЛ МАТЬ ТВОЮ ИДИ ИСПРАВЛЯЙ ДАЛАБЕБ')
+                            default => throw new InvalidArgumentException('Неверный результат! ДАЛБАЕБ ТЫ
+                            ЧТО БЛЯТЬ БД РЕДАКТИРОВАЛ МАТЬ ТВОЮ ИДИ ИСПРАВЛЯЙ ДАЛАБЕБ')
                         };
                         $sender->sendMessage($content);
                     } else {
-                        $sender->sendMessage('§l§fLobby->§g' . $game . ' FFA§f-> ' . $gameType . 'KB§f->§gPC');
+                        $sender->sendMessage(self::LOBBYUSAGE . $game . ' FFA§f-> ' . $gameType . 'KB§f->§gPC');
                         $server = Server::getInstance();
                         $server->loadLevel((string)self::GAMES[$game][$gameType][1]);
                         $server->loadLevel('Nether');
                         $sender->teleport($sender->getServer()->getLevelByName('Nether')->getSpawnLocation());
+
                         $sender->teleport($sender->getServer()->getLevelByName((string)self::GAMES[$game]
                         [$gameType][1])->getSpawnLocation());
+
                         $itemClass->giveItems($sender, $game);
                     }
                     break;
@@ -223,22 +233,27 @@ final class SelectMain
                             'Russ' => '§l§cТы не можешь войти на PE арены!',
                             'Eng' => '§l§cYou cannot enter the PE arenas!',
                             'DW' => '§l§cSie können die PE-Arenen nicht betreten!',
-                            default => throw new \Exception('Неверный результат! ДАЛБАЕБ ТЫ ЧТО БЛЯТЬ
-                            БД РЕДАКТИРОВАЛ МАТЬ ТВОЮ ИДИ ИСПРАВЛЯЙ ДАЛАБЕБ')
+                            default => throw new InvalidArgumentException('Неверный результат! ДАЛБАЕБ
+                            ТЫ ЧТО БЛЯТЬ БД РЕДАКТИРОВАЛ МАТЬ ТВОЮ ИДИ ИСПРАВЛЯЙ ДАЛАБЕБ')
                         };
                         $sender->sendMessage($content);
                     } else {
-                        $sender->sendMessage('§l§fLobby->§g' . $game . ' FFA§f->' . $gameType . ' KB§f->§gPE');
+                        $sender->sendMessage(self::LOBBYUSAGE . $game . ' FFA§f->' . $gameType . ' KB§f->§gPE');
                         $server = Server::getInstance();
                         $server->loadLevel((string)self::GAMES[$game][$gameType][2]);
                         $server->loadLevel('Nether');
                         $sender->teleport($sender->getServer()->getLevelByName('Nether')->getSpawnLocation());
+
                         $sender->teleport($sender->getServer()->getLevelByName((string)self::GAMES[$game]
                         [$gameType][2])->getSpawnLocation());
+
                         $itemClass->giveItems($sender, $game);
                         $sender->addTitle('§l§g' . $game . ' FFA PHONE', '§r§fУдачи');
                     }
                     break;
+                default:
+                    throw new InvalidArgumentException('Мда опять экзепшн кидать кто блять еще
+                    одну кнопку добавил мать его');
             }
         });
         $form->setTitle('§l§r' . $game . ' FFA ' . $gameType);
