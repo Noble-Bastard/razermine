@@ -4,57 +4,47 @@ namespace LosharaSUKA;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-
 use pocketmine\item\Item;
 use pocketmine\utils\Config;
 use pocketmine\math\Vector3;
-
 use pocketmine\{Player, Server};
-
 use pocketmine\network\mcpe\protocol\{
     RemoveObjectivePacket,
     SetDisplayObjectivePacket,
     SetScorePacket,
     types\ScorePacketEntry
 };
-
 use pocketmine\event\player\{
     PlayerQuitEvent,
-    PlayerJoinEvent, 
-    PlayerDropItemEvent, 
-    PlayerExhaustEvent, 
-    PlayerCommandPreprocessEvent, 
-    PlayerChatEvent, 
-    PlayerInteractEvent, 
+    PlayerJoinEvent,
+    PlayerDropItemEvent,
+    PlayerExhaustEvent,
+    PlayerCommandPreprocessEvent,
+    PlayerChatEvent,
+    PlayerInteractEvent,
     PlayerMoveEvent
 };
-
 use pocketmine\event\block\{BlockBreakEvent, BlockPlaceEvent};
 use pocketmine\event\entity\{EntityDamageEvent, EntityDamageByEntityEvent};
-
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\level\particle\{GenericParticle, FloatingTextParticle};
-
-use pocketmine\network\mcpe\protocol\{LoginPacket, 
-    InventoryTransactionPacket, 
-    LevelSoundEventPacket, 
+use pocketmine\network\mcpe\protocol\{LoginPacket,
+    InventoryTransactionPacket,
+    LevelSoundEventPacket,
     PlayerActionPacket
 };
-
 use pocketmine\level\particle\Particle;
-
 use LosharaSUKA\Tasks\{
-    ScoreBoard, 
-    CpsTask, 
+    ScoreBoard,
+    CpsTask,
     TopsTask
 };
-
 use LosharaSUKA\Commands\{
-    AddKarma, 
-    Groups, 
-    SetGroup, 
-    Prefix, 
-    Lobby, 
+    AddKarma,
+    Groups,
+    SetGroup,
+    Prefix,
+    Lobby,
     Hub
 };
 
@@ -68,36 +58,37 @@ use function array_filter;
 class Main extends PluginBase implements Listener
 {
     protected $clientData;
-    private $scoreboards = [];
+    private array $scoreboards = [];
 
     public function onLoad(): void
     {
         self::$instance = $this;
 
         $commands = [
-            new AddKarma($this, "addkarma", "Тебе не доступна данная команда", "operator"),
-            new SetGroup($this, "setgroup", "Тебе не доступна данная команда", "operator"),
-            new Groups($this, "groups", "Тебе не доступна данная команда", "operator"),
+            new AddKarma($this, "addkarma", "Выдача денег", "operator"),
+            new SetGroup($this, "setgroup", "Выдача привилегий", "operator"),
+            new Groups("groups", "Список привилегий", "operator"),
             new Lobby($this, "lobby", "Back To Lobby", "operator", ['quit', 'leave', 'spawn']),
-            new Prefix($this, "prefix", "loа", "operator"),
-            new Hub($this, "hub", "Back To Lobby", "operator"),
+            new Prefix("prefix", "loа", "operator"),
+            new Hub("hub", "Back To Lobby", "operator"),
         ];
 
-        foreach($commands as $command)
+        foreach ($commands as $command) {
                 $this->getServer()->getCommandMap()->register($this->getName(), $command);
+        }
     }
 
-    public $gaming = array();
+    public array $gaming = array();
     public $cfg;
     public $online;
     private const ARRAY_MAX_SIZE = 100;
-    public static $instance;
+    public static Main $instance;
 
     /** @var bool */
-    private $countLeftClickBlock;
+    private bool $countLeftClickBlock;
 
     /** @var array[] */
-    private $clicksData = [];
+    private array $clicksData = [];
 
 
     public function onEnable()
