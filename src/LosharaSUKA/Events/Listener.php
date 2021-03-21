@@ -104,7 +104,7 @@ class EventListener implements Listener
                     $damager = $event->getDamager();
                     $entity = $event->getEntity();
 
-                    $event->getDamager()->addTitle("§l§aKILL!§r", $entity ->getDisplayName());
+                    $event->getDamager()->sendTitle("§l§aKILL!§r", $entity ->getDisplayName());
                     $this->addKill($damager);
                     $rand = mt_rand(3, 10);
                     $this->addKarma($damager, $rand);
