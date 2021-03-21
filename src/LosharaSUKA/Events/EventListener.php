@@ -3,46 +3,127 @@
 namespace LosharaSUKA\Events;
 
 use LosharaSUKA\Main;
-use LosharaSUKA\OtherMethods\OtherMethods;
 use LosharaSUKA\Tasks\TopsTask;
-use pocketmine\event\block\BlockBreakEvent;
-use pocketmine\event\block\BlockPlaceEvent;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\Listener;
-use pocketmine\event\player\PlayerCommandPreprocessEvent;
-use pocketmine\event\player\PlayerDropItemEvent;
-use pocketmine\event\player\PlayerExhaustEvent;
-use pocketmine\event\player\PlayerJoinEvent;
+use LosharaSUKA\OtherMethods\OtherMethods;
 use jojoe77777\FormAPI\SimpleForm;
-use pocketmine\event\player\PlayerMoveEvent;
-use pocketmine\Player;
-use pocketmine\Server;
+use pocketmine\{Player, Server};
+use pocketmine\event\Listener;
+use pocketmine\event\player\{
+    PlayerQuitEvent,
+    PlayerJoinEvent,
+    PlayerDropItemEvent,
+    PlayerPreLoginEvent,
+    PlayerExhaustEvent,
+    PlayerCommandPreprocessEvent,
+    PlayerChatEvent,
+    PlayerInteractEvent,
+    PlayerMoveEvent
+};
+use pocketmine\event\block\{BlockBreakEvent, BlockPlaceEvent};
+use pocketmine\event\entity\{EntityDamageEvent, EntityDamageByEntityEvent};
+use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\network\mcpe\protocol\LoginPacket;
 
 class EventListener implements Listener
 {
-
-    private const PARTICLES = [
-        "Flames",
-        "HappyVillager",
-        "LavaDrip",
-        "Hearts"
+    public $banCommand = [
+        '/msg',
+        '/w',
+        '/tell',
+        '/me',
+        '/ver',
+        '/version',
+        '/mixer',
+        '/about',
+        '/suicide',
+        '/kill',
+        '/help',
+        '/info',
+        '/автор',
+        'server'
     ];
+
+    public $selectGame = [
+        '§fИграть',
+        '§fPlay',
+        '§fDas Spiel'
+    ];
+
+    public $selectMain = [
+        '§fОсновное',
+        '§fMain',
+        '§fHauptsächlich'
+    ];
+
+    public $selectBoxMenu = [
+        '§fКейсы',
+        '§fBox',
+        '§fKiste'
+    ];
+
+    public $selectStorage = [
+        '§fХранилище',
+        '§fStorage',
+        '§fAufbewahrungsort'
+    ];
+
+
+    public function handleDrop(PlayerDropItemEvent $event): void
+    {
+        $event->setCancelled();
+    }
+
+    public function handlePlace(BlockPlaceEvent $event): void
+    {
+        $event->setCancelled();
+    }
+
+    public function handleBreak(BlockBreakEvent $event): void
+    {
+        $event->setCancelled();
+    }
+
+    public function handleHunger(PlayerExhaustEvent $event): void
+    {
+        $event->setCancelled();
+    }
+
+    public function MoveEvent(PlayerMoveEvent $event): void
+    {
+        $player = $event->getPlayer();
+
+        if ($player->getY() <= 10) {
+            $player->teleport($this->getServer()->getDefaultLevel()->getSafeSpawn());
+        }
+    }
+
+    public function DamageEvent(EntityDamageEvent $event): void
+    {
+        if (($event->getEntity() instanceof Player) and $event->getEntity()->getLevel()->getFolderName() == "world") {
+            $event->setCancelled();
+        }
+
+        if ($event instanceof EntityDamageByEntityEvent) {
+            if (($event->getDamager() instanceof Player) and $event->getDamager()->getLevel()->getFolderName() == "world") {
+                $event->setCancelled();
+            }
+        }
+    }
+
+    public function onLogin(DataPacketReceiveEvent $event): void
+    {
+        if ($event->getPacket() instanceof LoginPacket) {
+            $nick = $event->getPacket()->username;
+            // $this->clientData[$event->getPacket()->username] = $event->getPacket()->clientData;
+        }
+    }
 
     public function banCommand(PlayerCommandPreprocessEvent $event)
     {
         $player = $event->getPlayer();
-        $command = $event->getMessage();
-        $banCommand = explode(" ", $event->getMessage());
-        if (
-            strtolower($banCommand[0] == "/msg" || $banCommand[0] == "/w"
-            || $banCommand[0] == "/tell" || $banCommand[0] == "/me"
-            || $banCommand[0] == "/ver" || $banCommand[0] == "/version"
-            || $banCommand[0] == "/mixer" || $banCommand[0] == "/about"
-            || $banCommand[0] == "suicide" || $banCommand[0] == "/kill"
-            || $banCommand[0] == "/help" || $banCommand[0] == "/info"
-            || $banCommand[0] == "/автор" || $banCommand[0] == "/server")
-        ) {
+        $bancommand = explode(" ", $event->getMessage());
+
+        if (in_array(strtolower($bancommand[0], $this->banCommand))) {
             if (!$player->isOp()) {
                 $content = match ($this->getSettings($player, "Lang")) {
                     'Russ' => 'Привет друг! Раз ты написал эту комнду, значит ты захотел что-то узнать про сервер.',
@@ -56,6 +137,191 @@ class EventListener implements Listener
             }
         }
     }
+
+    public function onChat(PlayerChatEvent $event)
+    {
+        $player = $event->getPlayer();
+        $msg = $event->getMessage();
+        $name = $player->getName();
+        if ($this->getGroup($name) == "Player") {
+            return $event->setFormat("§7{$name}: §f{$msg}");
+        }
+        if ($this->getGroup($name) == "VIP") {
+            return $event->setFormat("§a[V] {$name}: §f{$msg}");
+        }
+        if ($this->getGroup($name) == "Premium") {
+            return $event->setFormat("§3[P] {$name}: §f{$msg}");
+        }
+        if ($this->getGroup($name) == "Holy") {
+            return $event->setFormat("§6[H] {$name}: §f{$msg}");
+        }
+        if ($this->getGroup($name) == "Immortal") {
+            return $event->setFormat("§d[I] {$name}: §f{$msg}");
+        }
+        if ($this->getGroup($name) == "YouTube") {
+            return $event->setFormat("§cYou§fTube§r§c {$name}: §f{$msg}");
+        }
+        if ($this->getGroup($name) == "Moderator") {
+            return $event->setFormat("§1Moderator {$name}: §f{$msg}");
+        }
+        if ($this->getGroup($name) == "Creator") {
+            return $event->setFormat("§bCreator {$name}: §f{$msg}");
+        }
+        if ($this->getGroup($name) == "Admin") {
+            return $event->setFormat("§g§lAdmin {$name}: §f{$msg}");
+        }
+    }
+
+    public function onQuit(PlayerQuitEvent $event): void
+    {
+        $player = $event->getPlayer()->getName();
+
+        if (isset($this->scoreboards[$player])) {
+            unset($this->scoreboards[$player]);
+        }
+
+        if (isset($this->gaming[$player])) {
+            unset($this->gaming[$player]);
+        }
+
+        $this->online = $this->online - 1;
+        $event->setQuitMessage(null);
+    }
+
+    public function playerJoin(PlayerJoinEvent $event): void
+    {
+        // $this->initPlayerClickData($event->getPlayer());
+    }
+
+    public function playerQuit(PlayerQuitEvent $event): void
+    {
+        // $this->removePlayerClickData($event->getPlayer());
+    }
+
+    public function packetReceive(DataPacketReceiveEvent $event): void
+    {
+        // if (
+        //     isset($this->clicksData[$event->getPlayer()->getLowerCaseName()]) &&
+        //     (
+        //         ($event->getPacket()::NETWORK_ID === InventoryTransactionPacket::NETWORK_ID &&
+        //             $event->getPacket()->transactionType === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY) ||
+        //         ($event->getPacket()::NETWORK_ID === LevelSoundEventPacket::NETWORK_ID &&
+        //             $event->getPacket()->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE) ||
+        //         ($this->countLeftClickBlock &&
+        //             $event->getPacket()::NETWORK_ID === PlayerActionPacket::NETWORK_ID &&
+        //             $event->getPacket()->action === PlayerActionPacket::ACTION_START_BREAK)
+        //     )
+        // ) {
+        //     $this->addClick($event->getPlayer());
+        // }
+    }
+
+    public function CreateStats(PlayerPreLoginEvent $event)
+    {
+        $name = strtolower($event->getPlayer()->getName());
+        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML, array(
+            "Group" => "Player",
+            "Karma" => 0,
+            "Cps" => "on",
+            "Board" => "on",
+            "Static" => "on",
+            "Lang" => "Eng",
+            "BoxD" => 0,
+            "BoxC" => 0,
+            "BoxB" => 0,
+            "BoxA" => 0,
+            "BoxS" => 0,
+            "Tops" => "on",
+            "Flames" => "No",
+            "HappyVillager" => "No",
+            "LavaDrip" => "No",
+            "Hearts" => "No",
+            "Dus2" => "No",
+            "Dus23" => "No",
+            "Dus4" => "No",
+            "Particle" => "none"
+        ));
+        if (!$this->db->query("SELECT * FROM stats WHERE name = '$name'")->fetchArray(SQLITE3_ASSOC)) {
+            $this->db->query("INSERT INTO stats (name, death, kills) VALUES ('$name', 0, 0);");
+        }
+    }
+
+    public function onInteract(PlayerInteractEvent $event)
+    {
+        $player = $event->getPlayer();
+        if ($player->getLevel()->getFolderName() == "world") {
+            $event->setCancelled();
+        }
+
+        $item = $player->getInventory()->getItemInHand();
+
+        $block = $event->getBlock();
+        $frame = $block->getLevel()->getTile($block);
+        if ($frame instanceof ItemFrame && $frame->getItem() instanceof FilledMap && !$event->getPlayer()->hasPermission('mapimageengine.bypassprotect')) {
+            $event->setCancelled(true);
+        }
+
+        if (in_array($item->getCustomName(), $this->selectGame)) {
+        // if ($item->getCustomName() == "§fИграть" or $item->getCustomName() == "§fPlay" or $item->getCustomName() == "§fDas Spiel")
+            $this->SelectGame($player);
+        }
+
+
+        if (in_array($item->getCustomName(), $this->selectMain)) {
+            if ($item->getCustomName() == "§fОсновное" or $item->getCustomName() == "§fMain" or $item->getCustomName() == "§fHauptsächlich") {
+                $this->SelectMain($player);
+            }
+        }
+
+        if (in_array($item->getCustomName(), $this->selectBoxMenu)) {
+            if ($item->getCustomName() == "§fКейсы" or $item->getCustomName() == "§fBox" or $item->getCustomName() == "§fKiste") {
+                $this->BoxMenu($player);
+            }
+        }
+
+
+        if (in_array($item->getCustomName(), $this->selectStorage)) {
+            $this->Storage($player);
+        }
+    }
+
+    public function onDamage(EntityDamageEvent $event): void
+    {
+        if ($event->getEntity() instanceof Player) {
+            if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
+                $event->setCancelled();
+
+                return;
+            }
+
+            if (($event->getEntity()->getHealth() - $event->getFinalDamage()) < 1) {
+                $event->setCancelled();
+
+                //$event->getEntity()->getLevel()->addParticle(new DestroyBlockParticle($event->getEntity()->getPosition(), Block::get(152, 0)));
+                $event->getEntity()->addTitle("§l§cDEATH!§r");
+                $this->addDeath($event->getEntity());
+
+                if ($event instanceof EntityDamageByEntityEvent) {
+                    $d = $event->getDamager();
+
+                    $event->getDamager()->addTitle("§l§aKILL!§r", $event->getEntity()->getDisplayName());
+                    $this->addKill($d);
+                    $rand = mt_rand(3, 10);
+                    $this->addKarma($d, $rand);
+                    $d->addTitle("§c§lKill", "§f+ §e{$rand} §fKarma!");
+                    $d->sendPopup("§l§cKILL!§r", $event->getEntity()->getDisplayName());
+                    $message = "§e{$event->getEntity()->getDisplayName()} §fkilled by §e{$event->getDamager()->getDisplayName()}!";
+
+                    foreach ($event->getDamager()->getLevel()->getPlayers() as $pl) {
+                        $pl->sendMessage($message);
+                    }
+                }
+
+                $this->getServer()->dispatchCommand($event->getEntity(), "lobby");
+            }
+        }
+    }
+
     public function onJoin(PlayerJoinEvent $event)
     {
         $otherMethodsInstance = new OtherMethods();
@@ -84,7 +350,7 @@ class EventListener implements Listener
         $otherMethodsInstance->rebirthPlayer($player);
     }
 
-    public function onDamage(EntityDamageEvent $event): void
+    public function osnDamage(EntityDamageEvent $event): void
     {
         $entity = $event->getEntity();
         if ($entity  instanceof Player) {
@@ -133,25 +399,5 @@ class EventListener implements Listener
                 $event->setCancelled(true);
             }
         }
-    }
-
-    public function noPlace(BlockPlaceEvent $event)
-    {
-        $event->setCancelled();
-    }
-
-    public function noBreak(BlockBreakEvent $event)
-    {
-        $event->setCancelled();
-    }
-
-    public function noHunger(PlayerExhaustEvent $event)
-    {
-        $event->setCancelled(true);
-    }
-
-    public function noDrop(PlayerDropItemEvent $event)
-    {
-        $event->setCancelled();
     }
 }

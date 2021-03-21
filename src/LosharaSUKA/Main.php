@@ -14,6 +14,7 @@ use pocketmine\network\mcpe\protocol\{
     SetScorePacket,
     types\ScorePacketEntry
 };
+<<<<<<< HEAD
 use pocketmine\event\player\{
     PlayerQuitEvent,
     PlayerJoinEvent,
@@ -33,6 +34,11 @@ use pocketmine\network\mcpe\protocol\{LoginPacket,
     LevelSoundEventPacket,
     PlayerActionPacket
 };
+=======
+
+use pocketmine\level\particle\{GenericParticle, FloatingTextParticle};
+
+>>>>>>> dd053f92cf9fda12b60fd12db3d252370429f309
 use pocketmine\level\particle\Particle;
 use LosharaSUKA\Tasks\{
     ScoreBoard,
@@ -69,8 +75,13 @@ class Main extends PluginBase implements Listener
             new SetGroup($this, "setgroup", "Выдача привилегий", "operator"),
             new Groups("groups", "Список привилегий", "operator"),
             new Lobby($this, "lobby", "Back To Lobby", "operator", ['quit', 'leave', 'spawn']),
+<<<<<<< HEAD
             new Prefix("prefix", "loа", "operator"),
             new Hub("hub", "Back To Lobby", "operator"),
+=======
+            new Prefix($this, "prefix", "loа", "operator"),
+            new Hub($this, "hub", "Back To Lobby", "operator")
+>>>>>>> dd053f92cf9fda12b60fd12db3d252370429f309
         ];
 
         foreach ($commands as $command) {
@@ -118,15 +129,6 @@ class Main extends PluginBase implements Listener
         $this->topkills = new FloatingTextParticle(new Vector3(-34, 40, -29), "", "");
         $this->db = new \SQLite3($this->getDataFolder() . "stats.db");
         $this->db->query("CREATE TABLE IF NOT EXISTS stats(name TEXT NOT NULL, death INTEGER NOT NULL, kills INTEGER NOT NULL);");
-    }
-
-
-    public function onLogin(DataPacketReceiveEvent $event)
-    {
-        if ($event->getPacket() instanceof LoginPacket) {
-            $nick = $event->getPacket()->username;
-            $this->clientData[$event->getPacket()->username] = $event->getPacket()->clientData;
-        }
     }
 
     public function getDeviceOS(string $username)
@@ -1607,180 +1609,6 @@ class Main extends PluginBase implements Listener
         }
     }
 
-    public function BanCommand(PlayerCommandPreprocessEvent $e)
-    {
-        $p = $e->getPlayer();
-        $command = $e->getMessage();
-        $bancommand = explode(" ", $e->getMessage());
-        if (strtolower($bancommand[0] == "/msg" || $bancommand[0] == "/w" || $bancommand[0] == "/tell" || $bancommand[0] == "/me" || $bancommand[0] == "/ver" || $bancommand[0] == "/version" || $bancommand[0] == "/mixer" || $bancommand[0] == "/about" || $bancommand[0] == "suicide" || $bancommand[0] == "/kill" || $bancommand[0] == "/help" || $bancommand[0] == "/info" || $bancommand[0] == "/автор" || $bancommand[0] == "/server")) {
-            if (!$p->isOp()) {
-                if ($this->getSettings($p, "Lang") == "Russ") {
-                    $p->sendMessage("Привет друг! Раз ты написал эту комнду, значит ты захотел что-то узнать про сервер. Но вот хрен тебе это, говна кусок.");
-                } elseif ($this->getSettings($p, "Lang") == "Eng") {
-                    $p->sendMessage("Hello Friend! Since you wrote this command, then you wanted to know something about the server. ");
-                } elseif ($this->getSettings($p, "Lang") == "DW") {
-                    $p->sendMessage("Hallo Freund! Da Sie dieses Team geschrieben haben, wollten Sie etwas über den Server wissen.");
-                }
-
-                $e->setCancelled();
-            }
-        }
-    }
-
-    //events
-
-
-    public function onDamage(EntityDamageEvent $event): void
-    {
-        if ($event->getEntity() instanceof Player) {
-            if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
-                $event->setCancelled();
-
-                return;
-            }
-
-            if (($event->getEntity()->getHealth() - $event->getFinalDamage()) < 1) {
-                $event->setCancelled();
-
-                //$event->getEntity()->getLevel()->addParticle(new DestroyBlockParticle($event->getEntity()->getPosition(), Block::get(152, 0)));
-                $event->getEntity()->addTitle("§l§cDEATH!§r");
-                $this->addDeath($event->getEntity());
-
-                if ($event instanceof EntityDamageByEntityEvent) {
-                    $d = $event->getDamager();
-
-                    $event->getDamager()->addTitle("§l§aKILL!§r", $event->getEntity()->getDisplayName());
-                    $this->addKill($d);
-                    $rand = mt_rand(3, 10);
-                    $this->addKarma($d, $rand);
-                    $d->addTitle("§c§lKill", "§f+ §e{$rand} §fKarma!");
-                    $d->sendPopup("§l§cKILL!§r", $event->getEntity()->getDisplayName());
-                    $message = "§e{$event->getEntity()->getDisplayName()} §fkilled by §e{$event->getDamager()->getDisplayName()}!";
-
-                    foreach ($event->getDamager()->getLevel()->getPlayers() as $pl) {
-                        $pl->sendMessage($message);
-                    }
-                }
-
-                $this->getServer()->dispatchCommand($event->getEntity(), "lobby");
-            }
-        }
-    }
-
-    public function onPlace(BlockPlaceEvent $event)
-    {
-        $event->setCancelled();
-    }
-
-    public function onBreak(BlockBreakEvent $event)
-    {
-        $event->setCancelled();
-    }
-
-    public function Hunger(PlayerExhaustEvent $event)
-    {
-        $event->setCancelled(true);
-    }
-
-    public function drop(PlayerDropItemEvent $event)
-    {
-        $event->setCancelled();
-    }
-
-    public function MoveEvent(PlayerMoveEvent $event)
-    {
-        if ($event->getPlayer()->getY() <= 10) {
-            $event->getPlayer()->teleport($this->getServer()->getDefaultLevel()->getSafeSpawn());
-        }
-    }
-
-    public function DamageEvent(EntityDamageEvent $event)
-    {
-        if (($event->getEntity() instanceof Player) and $event->getEntity()->getLevel()->getFolderName() == "world") {
-            $event->setCancelled();
-        }
-        if ($event instanceof EntityDamageByEntityEvent) {
-            if (($event->getDamager() instanceof Player) and $event->getDamager()->getLevel()->getFolderName() == "world") {
-                $event->setCancelled();
-            }
-        }
-    }
-
-    public function onInteract(PlayerInteractEvent $event)
-    {
-        $player = $event->getPlayer();
-        if ($player->getLevel()->getFolderName() == "world") {
-            $event->setCancelled();
-        }
-        $item = $player->getInventory()->getItemInHand();
-
-        $block = $event->getBlock();
-        $frame = $block->getLevel()->getTile($block);
-        if ($frame instanceof ItemFrame && $frame->getItem() instanceof FilledMap && !$event->getPlayer()->hasPermission('mapimageengine.bypassprotect')) {
-            $event->setCancelled(true);
-        }
-        if (
-            $item->getCustomName() == "§fИграть" or
-            $item->getCustomName() == "§fPlay" or
-            $item->getCustomName() == "§fDas Spiel"
-        ) {
-            $this->SelectGame($player);
-        }
-
-        if (
-            $item->getCustomName() == "§fОсновное" or
-            $item->getCustomName() == "§fMain" or
-            $item->getCustomName() == "§fHauptsächlich"
-        ) {
-            $this->SelectMain($player);
-        }
-        if (
-            $item->getCustomName() == "§fКейсы" or
-            $item->getCustomName() == "§fBox" or
-            $item->getCustomName() == "§fKiste"
-        ) {
-            $this->BoxMenu($player);
-        }
-        if (
-            $item->getCustomName() == "§fХранилище" or
-            $item->getCustomName() == "§fStorage" or
-            $item->getCustomName() == "§fAufbewahrungsort"
-        ) {
-            $this->Storage($player);
-        }
-    }
-
-    //createstats
-    public function CreateStats(\pocketmine\event\player\PlayerPreLoginEvent $event)
-    {
-        $name = strtolower($event->getPlayer()->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML, array(
-            "Group" => "Player",
-            "Karma" => 0,
-            "Cps" => "on",
-            "Board" => "on",
-            "Static" => "on",
-            "Lang" => "Eng",
-            "BoxD" => 0,
-            "BoxC" => 0,
-            "BoxB" => 0,
-            "BoxA" => 0,
-            "BoxS" => 0,
-            "Tops" => "on",
-            "Flames" => "No",
-            "HappyVillager" => "No",
-            "LavaDrip" => "No",
-            "Hearts" => "No",
-            "Dus2" => "No",
-            "Dus23" => "No",
-            "Dus4" => "No",
-            "Particle" => "none"
-        ));
-        if (!$this->db->query("SELECT * FROM stats WHERE name = '$name'")->fetchArray(SQLITE3_ASSOC)) {
-            $this->db->query("INSERT INTO stats (name, death, kills) VALUES ('$name', 0, 0);");
-        }
-    }
-
     //set and get stats
     public function getSettings($p, $settings)
     {
@@ -1937,40 +1765,6 @@ class Main extends PluginBase implements Listener
         } elseif ($this->getGroup($name) == "Admin") {
             $p->setNameTag("§g§lAdmin§r {$name}");
             $p->setDisplayName("§g§lAdmin " . $name);
-        }
-    }
-
-    public function onChat(PlayerChatEvent $event)
-    {
-        $player = $event->getPlayer();
-        $msg = $event->getMessage();
-        $name = $player->getName();
-        if ($this->getGroup($name) == "Player") {
-            return $event->setFormat("§7{$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "VIP") {
-            return $event->setFormat("§a[V] {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Premium") {
-            return $event->setFormat("§3[P] {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Holy") {
-            return $event->setFormat("§6[H] {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Immortal") {
-            return $event->setFormat("§d[I] {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "YouTube") {
-            return $event->setFormat("§cYou§fTube§r§c {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Moderator") {
-            return $event->setFormat("§1Moderator {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Creator") {
-            return $event->setFormat("§bCreator {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Admin") {
-            return $event->setFormat("§g§lAdmin {$name}: §f{$msg}");
         }
     }
 
@@ -2157,18 +1951,6 @@ class Main extends PluginBase implements Listener
         return isset($this->scoreboards[$player->getName()]) ? $this->scoreboards[$player->getName()] : null;
     }
 
-    public function onQuit(PlayerQuitEvent $event): void
-    {
-        if (isset($this->scoreboards[($player = $event->getPlayer()->getName())])) {
-            unset($this->scoreboards[$player]);
-        }
-        if (isset($this->gaming[$event->getPlayer()->getName()])) {
-            unset($this->gaming[$event->getPlayer()->getName()]);
-        }
-        $this->online = $this->online - 1;
-        $event->setQuitMessage(null);
-    }
-
     public function initPlayerClickData(Player $p): void
     {
         $this->clicksData[$p->getLowerCaseName()] = [];
@@ -2208,34 +1990,6 @@ class Main extends PluginBase implements Listener
     public function removePlayerClickData(Player $p): void
     {
         unset($this->clicksData[$p->getLowerCaseName()]);
-    }
-
-    public function playerJoin(PlayerJoinEvent $e): void
-    {
-        $this->initPlayerClickData($e->getPlayer());
-    }
-
-    public function playerQuit(PlayerQuitEvent $e): void
-    {
-        $this->removePlayerClickData($e->getPlayer());
-    }
-
-    public function packetReceive(DataPacketReceiveEvent $e): void
-    {
-        if (
-            isset($this->clicksData[$e->getPlayer()->getLowerCaseName()]) &&
-            (
-                ($e->getPacket()::NETWORK_ID === InventoryTransactionPacket::NETWORK_ID &&
-                    $e->getPacket()->transactionType === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY) ||
-                ($e->getPacket()::NETWORK_ID === LevelSoundEventPacket::NETWORK_ID &&
-                    $e->getPacket()->sound === LevelSoundEventPacket::SOUND_ATTACK_NODAMAGE) ||
-                ($this->countLeftClickBlock &&
-                    $e->getPacket()::NETWORK_ID === PlayerActionPacket::NETWORK_ID &&
-                    $e->getPacket()->action === PlayerActionPacket::ACTION_START_BREAK)
-            )
-        ) {
-            $this->addClick($e->getPlayer());
-        }
     }
 
     public function topKills()
@@ -2280,31 +2034,4 @@ class Main extends PluginBase implements Listener
         $this->topkills->setText("\n" . $list);
         $this->getServer()->getDefaultLevel()->addParticle($this->topkills);
     }
-
-//    public function onLevelChange(EntityLevelChangeEvent $event) {
-//        if(($player = $event->getEntity()) instanceof Player && !$event->isCancelled()){
-//            $packet = new ChangeDimensionPacket();
-//            $packet->dimension = 1;
-//            $packet->position = $player->asVector3();
-//            $packet->respawn = true;
-//            $player->dataPacket($packet);
-//            $this->getScheduler()->scheduleDelayedTask(new UnshowTask1($this, $player), 20);
-              //show loading screen for 1 second
-//        }
-//    }
-
-//    public function sendDimensionPacket(Player $player, int $dimension)
-//    {
-//        if (
-//            (!isset($player->dimension) && $dimension === DimensionIds::OVERWORLD) ||
-//            $player->dimension === $dimension
-//        ) {
-//            return; // ("Attempted to send ChangeDimensionPacket with the dimension the client already is in.");
-//        }
-//        $player->dimension = $dimension;
-//        $pk = new ChangeDimensionPacket();
-//        $pk->dimension = $dimension;
-//        $pk->position = $this->player->asVector3();
-//        $player->dataPacket($pk);
-//    }
 }
