@@ -4,102 +4,71 @@ namespace LosharaSUKA;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
+
 use pocketmine\item\Item;
 use pocketmine\utils\Config;
 use pocketmine\math\Vector3;
+
 use pocketmine\{Player, Server};
+
 use pocketmine\network\mcpe\protocol\{
     RemoveObjectivePacket,
     SetDisplayObjectivePacket,
     SetScorePacket,
     types\ScorePacketEntry
 };
-<<<<<<< HEAD
-use pocketmine\event\player\{
-    PlayerQuitEvent,
-    PlayerJoinEvent,
-    PlayerDropItemEvent,
-    PlayerExhaustEvent,
-    PlayerCommandPreprocessEvent,
-    PlayerChatEvent,
-    PlayerInteractEvent,
-    PlayerMoveEvent
-};
-use pocketmine\event\block\{BlockBreakEvent, BlockPlaceEvent};
-use pocketmine\event\entity\{EntityDamageEvent, EntityDamageByEntityEvent};
-use pocketmine\event\server\DataPacketReceiveEvent;
-use pocketmine\level\particle\{GenericParticle, FloatingTextParticle};
-use pocketmine\network\mcpe\protocol\{LoginPacket,
-    InventoryTransactionPacket,
-    LevelSoundEventPacket,
-    PlayerActionPacket
-};
-=======
 
 use pocketmine\level\particle\{GenericParticle, FloatingTextParticle};
 
->>>>>>> dd053f92cf9fda12b60fd12db3d252370429f309
 use pocketmine\level\particle\Particle;
+
 use LosharaSUKA\Tasks\{
-    ScoreBoard,
-    CpsTask,
+    ScoreBoard, 
+    CpsTask, 
     TopsTask
 };
+
 use LosharaSUKA\Commands\{
-    AddKarma,
-    Groups,
-    SetGroup,
-    Prefix,
-    Lobby,
+    AddKarma, 
+    Groups, 
+    SetGroup, 
+    Prefix, 
+    Lobby, 
     Hub
 };
 
-use function array_unshift;
-use function array_pop;
-use function microtime;
 use function round;
 use function count;
-use function array_filter;
 
 class Main extends PluginBase implements Listener
 {
-    protected $clientData;
-    private array $scoreboards = [];
+    private $scoreboards = [];
 
     public function onLoad(): void
     {
         self::$instance = $this;
 
         $commands = [
-            new AddKarma($this, "addkarma", "Выдача денег", "operator"),
-            new SetGroup($this, "setgroup", "Выдача привилегий", "operator"),
-            new Groups("groups", "Список привилегий", "operator"),
+            new AddKarma($this, "addkarma", "Тебе не доступна данная команда", "operator"),
+            new SetGroup($this, "setgroup", "Тебе не доступна данная команда", "operator"),
+            new Groups($this, "groups", "Тебе не доступна данная команда", "operator"),
             new Lobby($this, "lobby", "Back To Lobby", "operator", ['quit', 'leave', 'spawn']),
-<<<<<<< HEAD
-            new Prefix("prefix", "loа", "operator"),
-            new Hub("hub", "Back To Lobby", "operator"),
-=======
             new Prefix($this, "prefix", "loа", "operator"),
             new Hub($this, "hub", "Back To Lobby", "operator")
->>>>>>> dd053f92cf9fda12b60fd12db3d252370429f309
         ];
 
-        foreach ($commands as $command) {
+        foreach($commands as $command)
                 $this->getServer()->getCommandMap()->register($this->getName(), $command);
-        }
     }
 
-    public array $gaming = array();
+    public $gaming = array();
     public $cfg;
     public $online;
     private const ARRAY_MAX_SIZE = 100;
-    public static Main $instance;
-
-    /** @var bool */
-    private bool $countLeftClickBlock;
+    public static $instance;
 
     /** @var array[] */
-    private array $clicksData = [];
+    private $clicksData = [];
 
 
     public function onEnable()
@@ -131,26 +100,9 @@ class Main extends PluginBase implements Listener
         $this->db->query("CREATE TABLE IF NOT EXISTS stats(name TEXT NOT NULL, death INTEGER NOT NULL, kills INTEGER NOT NULL);");
     }
 
-    public function getDeviceOS(string $username)
+    public static function getDataPath(): string
     {
-        $devices =
-            [
-                "Unknown",
-                "Android",
-                "iOS",
-                "macOS",
-                "FireOS",
-                "GearVR",
-                "HoloLens",
-                "Windows 10",
-                "Windows",
-                "EducalVersion",
-                "Dedicated",
-                "PlayStation4",
-                "Switch",
-                "XboxOne"
-            ];
-        return $devices[$this->clientData[$username]["DeviceOS"]];
+        return self::getInstance()->getDataFolder();
     }
 
     //lang
@@ -1609,132 +1561,6 @@ class Main extends PluginBase implements Listener
         }
     }
 
-    //set and get stats
-    public function getSettings($p, $settings)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        return $cfg->get($settings);
-    }
-
-    public function setSettings($p, $settings, $none)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        $cfg->set($settings, $none);
-        $cfg->save();
-    }
-
-    public function getDeath($p)
-    {
-        $name = strtolower($p->getName());
-        $result = $this->db->query("SELECT death FROM stats WHERE name = '$name'")->fetchArray(SQLITE3_ASSOC);
-        return $result["death"];
-    }
-
-    public function addDeath($p)
-    {
-        $name = strtolower($p->getName());
-        $this->db->query("UPDATE `stats` SET `death` = `death` +1 WHERE `name` = '$name'");
-    }
-
-    public function getKills($p)
-    {
-        $name = strtolower($p->getName());
-        $result = $this->db->query("SELECT kills FROM stats WHERE name = '$name'")->fetchArray(SQLITE3_ASSOC);
-        return $result["kills"];
-    }
-
-    public function addKill($p)
-    {
-        $name = strtolower($p->getName());
-        $this->db->query("UPDATE `stats` SET `kills` = `kills` +1 WHERE `name` = '$name'");
-    }
-
-    public function getKarma($p)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        return $cfg->get("Karma");
-    }
-
-    public function addKarma($p, int $count)
-    {
-        $name = strtolower($p);
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        $cfg->set("Karma", $cfg->get("Karma") + $count);
-        $cfg->save();
-    }
-
-    public function remKarma($p, $count)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        $cfg->set("Karma", $cfg->get("Karma") - $count);
-        $cfg->save();
-    }
-
-    public function getBox($p, $box)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        return $cfg->get($box);
-    }
-
-    public function addBox($p, int $count, $type)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        $cfg->set($type, $cfg->get($type) + $count);
-        $cfg->save();
-    }
-
-    public function remBox($p, $count, $type)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        $cfg->set($type, $cfg->get($type) - $count);
-        $cfg->save();
-    }
-
-    public function setGroup($p, $group)
-    {
-        $name = strtolower($p);
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        $cfg->set("Group", $group);
-        $cfg->save();
-    }
-
-    public function getGroup($p)
-    {
-        $name = strtolower($p);
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        return $cfg->get("Group");
-    }
-
-    public function getCountGroup($name)
-    {
-        if ($this->getGroup($name) == "Player") {
-            return 0;
-        } elseif ($this->getGroup($name) == "VIP") {
-            return 1;
-        } elseif ($this->getGroup($name) == "Premium") {
-            return 2;
-        } elseif ($this->getGroup($name) == "Holy") {
-            return 3;
-        } elseif ($this->getGroup($name) == "Immortal") {
-            return 4;
-        } elseif ($this->getGroup($name) == "YouTube") {
-            return 5;
-        } elseif ($this->getGroup($name) == "Moderator") {
-            return 6;
-        } elseif ($this->getGroup($name) == "Creator") {
-            return 7;
-        } elseif ($this->getGroup($name) == "Admin") {
-            return 8;
-        }
-    }
-
     public function updateTag($p)
     {
         $name = $p->getName();
@@ -1766,36 +1592,6 @@ class Main extends PluginBase implements Listener
             $p->setNameTag("§g§lAdmin§r {$name}");
             $p->setDisplayName("§g§lAdmin " . $name);
         }
-    }
-
-    public function getParticle($p)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        return $cfg->get("Particle");
-    }
-
-    public function setParticle($p, $particle)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        $cfg->set("Particle", $particle);
-        $cfg->save();
-    }
-
-    public function getParticleAvailability($p, $particle)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        return $cfg->get($particle);
-    }
-
-    public function setParticleAvailability($p, $particle, $availability)
-    {
-        $name = strtolower($p->getName());
-        $cfg = new Config($this->getDataFolder() . "players/{$name}.yml", Config::YAML);
-        $cfg->set($particle, $availability);
-        $cfg->save();
     }
 
     public function randomFloat($min = -0.9, $max = 0.9)
@@ -1946,51 +1742,13 @@ class Main extends PluginBase implements Listener
         $player->sendDataPacket($pk);
     }
 
-    public function getObjectiveName(Player $player): ?string
-    {
-        return isset($this->scoreboards[$player->getName()]) ? $this->scoreboards[$player->getName()] : null;
-    }
+    
 
     public function initPlayerClickData(Player $p): void
     {
         $this->clicksData[$p->getLowerCaseName()] = [];
     }
 
-    public function addClick(Player $p): void
-    {
-        array_unshift($this->clicksData[$p->getLowerCaseName()], microtime(true));
-        if (count($this->clicksData[$p->getLowerCaseName()]) >= self::ARRAY_MAX_SIZE) {
-            array_pop($this->clicksData[$p->getLowerCaseName()]);
-        }
-    }
-
-    /**
-     * @param Player $player
-     * @param float $deltaTime Interval of time (in seconds) to calculate CPS in
-     * @param int $roundPrecision
-     * @return float
-     */
-    public function getCps(Player $player, float $deltaTime = 1.0, int $roundPrecision = 1): float
-    {
-        if (
-            !isset($this->clicksData[$player->getLowerCaseName()]) ||
-            empty($this->clicksData[$player->getLowerCaseName()])
-        ) {
-            return 0.0;
-        }
-        $ct = microtime(true);
-        return round(count(array_filter(
-            $this->clicksData[$player->getLowerCaseName()],
-            static function (float $t) use ($deltaTime, $ct): bool {
-                    return ($ct - $t) <= $deltaTime;
-            }
-        )) / $deltaTime, $roundPrecision);
-    }
-
-    public function removePlayerClickData(Player $p): void
-    {
-        unset($this->clicksData[$p->getLowerCaseName()]);
-    }
 
     public function topKills()
     {
