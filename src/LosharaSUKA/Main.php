@@ -2,38 +2,33 @@
 
 namespace LosharaSUKA;
 
+use PDO;
+use PDOException;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-
 use pocketmine\item\Item;
 use pocketmine\utils\Config;
 use pocketmine\math\Vector3;
-
 use pocketmine\{Player, Server};
-
 use pocketmine\network\mcpe\protocol\{
     RemoveObjectivePacket,
     SetDisplayObjectivePacket,
     SetScorePacket,
     types\ScorePacketEntry
 };
-
 use pocketmine\level\particle\{GenericParticle, FloatingTextParticle};
-
 use pocketmine\level\particle\Particle;
-
 use LosharaSUKA\Tasks\{
-    ScoreBoard, 
-    CpsTask, 
+    ScoreBoard,
+    CpsTask,
     TopsTask
 };
-
 use LosharaSUKA\Commands\{
-    AddKarma, 
-    Groups, 
-    SetGroup, 
-    Prefix, 
-    Lobby, 
+    AddKarma,
+    Groups,
+    SetGroup,
+    Prefix,
+    Lobby,
     Hub
 };
 
@@ -43,6 +38,11 @@ use function count;
 class Main extends PluginBase implements Listener
 {
     private $scoreboards = [];
+    public \SQLite3 $db;
+    /**
+     * @var FloatingTextParticle
+     */
+    private FloatingTextParticle $topkills;
 
     public function onLoad(): void
     {
@@ -51,14 +51,15 @@ class Main extends PluginBase implements Listener
         $commands = [
             new AddKarma($this, "addkarma", "Тебе не доступна данная команда", "operator"),
             new SetGroup($this, "setgroup", "Тебе не доступна данная команда", "operator"),
-            new Groups($this, "groups", "Тебе не доступна данная команда", "operator"),
+            new Groups("groups", "Тебе не доступна данная команда", "operator"),
             new Lobby($this, "lobby", "Back To Lobby", "operator", ['quit', 'leave', 'spawn']),
-            new Prefix($this, "prefix", "loа", "operator"),
-            new Hub($this, "hub", "Back To Lobby", "operator")
+            new Prefix("prefix", "loа", "operator"),
+            new Hub("hub", "Back To Lobby", "operator")
         ];
 
-        foreach($commands as $command)
+        foreach ($commands as $command) {
                 $this->getServer()->getCommandMap()->register($this->getName(), $command);
+        }
     }
 
     public $gaming = array();
@@ -73,7 +74,7 @@ class Main extends PluginBase implements Listener
 
     public function onEnable()
     {
-        $this->getServer()->getPluginManager()->registerEvents(new \LosharaSUKA\Events\EventListener(), $this);
+        $this->getServer()->getPluginManager()->registerEvents(new \LosharaSUKA\Events\EventListener($this, new \Getters()), $this);
         $this->load();
         $this->getLogger()->info("§aВСЕ ОКЕЙ, БОСС!");
         if (!is_dir($this->getDataFolder())) {
@@ -96,8 +97,36 @@ class Main extends PluginBase implements Listener
             $l->stopTime();
         }
         $this->topkills = new FloatingTextParticle(new Vector3(-34, 40, -29), "", "");
-        $this->db = new \SQLite3($this->getDataFolder() . "stats.db");
-        $this->db->query("CREATE TABLE IF NOT EXISTS stats(name TEXT NOT NULL, death INTEGER NOT NULL, kills INTEGER NOT NULL);");
+        try {
+            $this->db = new \SQLite3($this->getDataFolder() . "stats.db");
+            $this->db->query("CREATE TABLE IF NOT EXISTS stats(
+                                                         name TEXT NOT NULL,
+                                                         death INTEGER NOT NULL,
+                                                         kills INTEGER NOT NULL,
+                                                         Groups TEXT NOT NULL,
+                                                         Karma INTEGER NOT NULL,
+                                                         Cps TEXT NOT NULL,
+                                                         Board TEXT NOT NULL,
+                                                         Static TEXT NOT NULL,
+                                                         Lang TEXT NOT NULL,
+                                                         BoxD INTEGER NOT NULL,
+                                                         BoxC INTEGER NOT NULL,
+                                                         BoxB INTEGER NOT NULL,
+                                                         BoxA INTEGER NOT NULL,
+                                                         BoxS INTEGER NOT NULL,
+                                                         Tops TEXT NOT NULL,
+                                                         Flames TEXT NOT NULL,
+                                                         HappyVillager TEXT NOT NULL,
+                                                         LavaDrip TEXT NOT NULL,
+                                                         Hearts TEXT NOT NULL,
+                                                         Dus2 TEXT NOT NULL,
+                                                         Dus23 TEXT NOT NULL,
+                                                         Dus4 TEXT NOT NULL,
+                                                         Particle TEXT NOT NULL);");
+            echo "\nВсе норм бро \n";
+        } catch (\SQLiteException $exception) {
+            throw new \SQLiteException('Не удалось создать или подключиться к базе данных, админ даун');
+        }
     }
 
     public static function getDataPath(): string
@@ -985,74 +1014,7 @@ class Main extends PluginBase implements Listener
 
 
     //mainmenu
-    public function Main(Player $player)
-    {
-        $player->setGameMode(2);
-        $player->removeAllEffects();
-        $player->setHealth(20);
-        $player->setAllowFlight(false);
-        if ($this->getSettings($player, "Lang") == "Russ") {
-            $player->getInventory()->clearAll();
-            $player->getArmorInventory()->clearAll();
-            $player->getInventory()->setItem(0, Item::get(258)->setCustomName("§fИграть"));
-            $player->getInventory()->setItem(2, Item::get(342)->setCustomName("§fКейсы"));
-            $player->getInventory()->setItem(8, Item::get(188)->setCustomName("§fОсновное"));
-            $player->getInventory()->setItem(4, Item::get(242)->setCustomName("§fХранилище"));
-        }
-        if ($this->getSettings($player, "Lang") == "Eng") {
-            $player->getInventory()->clearAll();
-            $player->getArmorInventory()->clearAll();
-            $player->getInventory()->setItem(0, Item::get(258)->setCustomName("§fPlay"));
-            $player->getInventory()->setItem(2, Item::get(342)->setCustomName("§fBox"));
-            $player->getInventory()->setItem(8, Item::get(188)->setCustomName("§fMain"));
-            $player->getInventory()->setItem(4, Item::get(242)->setCustomName("§fStorage"));
-        }
-        if ($this->getSettings($player, "Lang") == "DW") {
-            $player->getInventory()->clearAll();
-            $player->getArmorInventory()->clearAll();
-            $player->getInventory()->setItem(0, Item::get(258)->setCustomName("§fDas Spiel"));
-            $player->getInventory()->setItem(2, Item::get(342)->setCustomName("§fKiste"));
-            $player->getInventory()->setItem(8, Item::get(188)->setCustomName("§fHauptsächlich"));
-            $player->getInventory()->setItem(4, Item::get(242)->setCustomName("§fAufbewahrungsort"));
-        }
-        $player->setFood(20);
-        if ($player->isOp() or $this->getCountGroup($player->getName()) >= 1) {
-            $player->setAllowFlight(true);
-        }
-    }
 
-    public function updateTag($p)
-    {
-        $name = $p->getName();
-        if ($this->getGroup($name) == "Player") {
-            $p->setNameTag("§7{$name}");
-            $p->setDisplayName("§7Player §f" . $name);
-        } elseif ($this->getGroup($name) == "VIP") {
-            $p->setNameTag("§a[V] {$name}");
-            $p->setDisplayName("§a[V] " . $name);
-        } elseif ($this->getGroup($name) == "Premium") {
-            $p->setNameTag("§3Premium {$name}");
-            $p->setDisplayName("§3Premium " . $name);
-        } elseif ($this->getGroup($name) == "Holy") {
-            $p->setNameTag("§6[H]§r {$name}");
-            $p->setDisplayName("§6[H] " . $name);
-        } elseif ($this->getGroup($name) == "Immortal") {
-            $p->setNameTag("§d[I] {$name}");
-            $p->setDisplayName("§d[I] " . $name);
-        } elseif ($this->getGroup($name) == "YouTube") {
-            $p->setNameTag("§cYou§fTube §c{$name}");
-            $p->setDisplayName("§cYou§fTube §c" . $name);
-        } elseif ($this->getGroup($name) == "Moderator") {
-            $p->setNameTag("§1Moderator {$name}");
-            $p->setDisplayName("§1Moderator " . $name);
-        } elseif ($this->getGroup($name) == "Creator") {
-            $p->setNameTag("§bCreator§r {$name}");
-            $p->setDisplayName("§bCreator " . $name);
-        } elseif ($this->getGroup($name) == "Admin") {
-            $p->setNameTag("§g§lAdmin§r {$name}");
-            $p->setDisplayName("§g§lAdmin " . $name);
-        }
-    }
 
     public function randomFloat($min = -0.9, $max = 0.9)
     {
@@ -1202,7 +1164,7 @@ class Main extends PluginBase implements Listener
         $player->sendDataPacket($pk);
     }
 
-    
+
 
     public function initPlayerClickData(Player $p): void
     {

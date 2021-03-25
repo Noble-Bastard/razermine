@@ -5,6 +5,9 @@
     },
   "require": {
     "ext-pdo": "*",
-    "ext-http": "*"
-  }
+    "ext-http": "*",
+    "ext-sqlite3": "*",
+    "ext-sqlite": "*"
+  },
+  "description": "Нужные компоненты для стандартов написания сборки"
 }

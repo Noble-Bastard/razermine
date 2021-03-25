@@ -2,6 +2,7 @@
 
 namespace LosharaSUKA\Events;
 
+use InvalidArgumentException;
 use LosharaSUKA\Main;
 use LosharaSUKA\Tasks\TopsTask;
 use LosharaSUKA\OtherMethods\OtherMethods;
@@ -26,7 +27,14 @@ use pocketmine\network\mcpe\protocol\LoginPacket;
 
 class EventListener implements Listener
 {
-    public $banCommand = [
+
+    public function __construct(
+        private Main $mainInstance,
+        private \Getters $getterInstance
+    ) {
+    }
+
+    public array $banCommand = [
         '/msg',
         '/w',
         '/tell',
@@ -43,25 +51,25 @@ class EventListener implements Listener
         'server'
     ];
 
-    public $selectGame = [
+    public array $selectGame = [
         '§fИграть',
         '§fPlay',
         '§fDas Spiel'
     ];
 
-    public $selectMain = [
+    public array $selectMain = [
         '§fОсновное',
         '§fMain',
         '§fHauptsächlich'
     ];
 
-    public $selectBoxMenu = [
+    public array $selectBoxMenu = [
         '§fКейсы',
         '§fBox',
         '§fKiste'
     ];
 
-    public $selectStorage = [
+    public array $selectStorage = [
         '§fХранилище',
         '§fStorage',
         '§fAufbewahrungsort'
@@ -88,23 +96,21 @@ class EventListener implements Listener
         $event->setCancelled();
     }
 
-    public function MoveEvent(PlayerMoveEvent $event): void
-    {
-        $player = $event->getPlayer();
 
-        if ($player->getY() <= 10) {
-            $player->teleport($this->getServer()->getDefaultLevel()->getSafeSpawn());
-        }
-    }
-
-    public function DamageEvent(EntityDamageEvent $event): void
+    public function damageEvent(EntityDamageEvent $event): void
     {
-        if (($event->getEntity() instanceof Player) and $event->getEntity()->getLevel()->getFolderName() == "world") {
+        if (
+            ($event->getEntity() instanceof Player) &&
+            $event->getEntity()->getLevel()->getFolderName() == "world"
+        ) {
             $event->setCancelled();
         }
 
         if ($event instanceof EntityDamageByEntityEvent) {
-            if (($event->getDamager() instanceof Player) and $event->getDamager()->getLevel()->getFolderName() == "world") {
+            if (
+                ($event->getDamager() instanceof Player) &&
+                $event->getDamager()->getLevel()->getFolderName() == "world"
+            ) {
                 $event->setCancelled();
             }
         }
@@ -121,9 +127,9 @@ class EventListener implements Listener
     public function banCommand(PlayerCommandPreprocessEvent $event)
     {
         $player = $event->getPlayer();
-        $bancommand = explode(" ", $event->getMessage());
+        $banCommand = explode(" ", $event->getMessage());
 
-        if (in_array(strtolower($bancommand[0], $this->banCommand))) {
+        if (in_array(strtolower($banCommand[0], $this->banCommand))) {
             if (!$player->isOp()) {
                 $content = match ($this->getSettings($player, "Lang")) {
                     'Russ' => 'Привет друг! Раз ты написал эту комнду, значит ты захотел что-то узнать про сервер.',
@@ -143,33 +149,19 @@ class EventListener implements Listener
         $player = $event->getPlayer();
         $msg = $event->getMessage();
         $name = $player->getName();
-        if ($this->getGroup($name) == "Player") {
-            return $event->setFormat("§7{$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "VIP") {
-            return $event->setFormat("§a[V] {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Premium") {
-            return $event->setFormat("§3[P] {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Holy") {
-            return $event->setFormat("§6[H] {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Immortal") {
-            return $event->setFormat("§d[I] {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "YouTube") {
-            return $event->setFormat("§cYou§fTube§r§c {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Moderator") {
-            return $event->setFormat("§1Moderator {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Creator") {
-            return $event->setFormat("§bCreator {$name}: §f{$msg}");
-        }
-        if ($this->getGroup($name) == "Admin") {
-            return $event->setFormat("§g§lAdmin {$name}: §f{$msg}");
-        }
+        $content = match ($this->getterInstance->getGroup($name)) {
+            'Player' => '§7',
+            'VIP' => '§a[V] ',
+            'Premium' => '§3Premium ',
+            'Holy' => '§6[H]§r',
+            'Immortal' => '§d[I] ',
+            'YouTube' => '§cYou§fTube ',
+            'Moderator' => '§1Moderator ',
+            'Creator' => '§bCreator§r ',
+            'Admin' => '§g§lAdmin§r ',
+            default => throw new InvalidArgumentException('ДАЛБАЕБ ТЫ ЧТО БЛЯТЬ БД РЕДАКТИРОВАЛ ИЛИ В КОДЕ Я НАКОСЯЧИЛ')
+        };
+        $event->setFormat("$content {$name}: §f{$msg}")
     }
 
     public function onQuit(PlayerQuitEvent $event): void
@@ -241,6 +233,7 @@ class EventListener implements Listener
             "Dus4" => "No",
             "Particle" => "none"
         ));
+
         if (!$this->db->query("SELECT * FROM stats WHERE name = '$name'")->fetchArray(SQLITE3_ASSOC)) {
             $this->db->query("INSERT INTO stats (name, death, kills) VALUES ('$name', 0, 0);");
         }
