@@ -91,7 +91,8 @@ final class OtherMethods
                 $player->sendMessage('§7> §aТы включил партикл §6' . $particle . '§a!');
             }
         } else {
-            throw new Exception('Че за далбаеб код редактнул, ищи по enableParticle странные параметры и фикси');
+            throw new \UnexpectedValueException('Че за далбаеб код редактнул,
+            ищи по enableParticle странные параметры и фикси');
         }
     }
 }
