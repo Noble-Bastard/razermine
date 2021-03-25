@@ -52,9 +52,6 @@ class OtherMethods
         $player->getInventory()->setItem(4, Item::get(242)->setCustomName($content[3]));
 
         $player->setFood(20);
-        if ($player->isOp() ||  $this->getCountGroup($player->getName()) >= 1) {
-            $player->setAllowFlight(true);
-        }
     }
 
     public function updateTag(Player $player): void
