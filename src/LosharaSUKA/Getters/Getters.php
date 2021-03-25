@@ -3,11 +3,10 @@
 use LosharaSUKA\Main;
 use pocketmine\utils\Config;
 
-
 class Getters
 {
     protected $clientData;
-    
+
     public function getDeviceOS(string $username)
     {
         $devices =
@@ -72,27 +71,20 @@ class Getters
         return $cfg->get("Group");
     }
 
-    public function getCountGroup($name)
+    public function getCountGroup(string $name): int
     {
-        if ($this->getGroup($name) == "Player") {
-            return 0;
-        } elseif ($this->getGroup($name) == "VIP") {
-            return 1;
-        } elseif ($this->getGroup($name) == "Premium") {
-            return 2;
-        } elseif ($this->getGroup($name) == "Holy") {
-            return 3;
-        } elseif ($this->getGroup($name) == "Immortal") {
-            return 4;
-        } elseif ($this->getGroup($name) == "YouTube") {
-            return 5;
-        } elseif ($this->getGroup($name) == "Moderator") {
-            return 6;
-        } elseif ($this->getGroup($name) == "Creator") {
-            return 7;
-        } elseif ($this->getGroup($name) == "Admin") {
-            return 8;
-        }
+        return match ($this->getGroup($name)) {
+            'Player' => 0,
+            'VIP' => 1,
+            'Premium' => 2,
+            'Holy' => 3,
+            'Immortal' => 4,
+            'YouTube' => 5,
+            'Moderator' => 6,
+            'Creator' => 7,
+            'Admin' => 8,
+            default => throw new InvalidArgumentException('ДАЛБАЕБ ТЫ ЧТО БЛЯТЬ БД РЕДАКТИРОВАЛ ИЛИ В КОДЕ Я НАКОСЯЧИЛ')
+        };
     }
 
     public function getParticle($p)
@@ -130,5 +122,4 @@ class Getters
             }
         )) / $deltaTime, $roundPrecision);
     }
-
 }

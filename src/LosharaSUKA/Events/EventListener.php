@@ -161,7 +161,7 @@ class EventListener implements Listener
             'Admin' => '§g§lAdmin§r ',
             default => throw new InvalidArgumentException('ДАЛБАЕБ ТЫ ЧТО БЛЯТЬ БД РЕДАКТИРОВАЛ ИЛИ В КОДЕ Я НАКОСЯЧИЛ')
         };
-        $event->setFormat("$content {$name}: §f{$msg}")
+        $event->setFormat("$content {$name}: §f{$msg}");
     }
 
     public function onQuit(PlayerQuitEvent $event): void
