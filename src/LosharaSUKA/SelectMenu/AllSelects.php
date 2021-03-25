@@ -5,17 +5,22 @@ namespace LosharaSUKA\SelectMenu;
 use Exception;
 use InvalidArgumentException;
 use LosharaSUKA\GiveItems\GivePlayer;
+use LosharaSUKA\OtherMethods\OtherMethods;
 use pocketmine\Player;
 use jojoe77777\FormAPI\SimpleForm;
 use pocketmine\Server;
 use LosharaSUKA\Main;
+use LosharaSUKA\Getters\Getters;
+use LosharaSUKA\Setters\Setters;
 
-class AllSelects
+final class AllSelects
 {
 
     public function __construct(
-        private \Getters $getterInstance,
-        private string $serverName
+        private Getters $getterInstance,
+        private Setters $setterInstance,
+        private string $serverName,
+        private OtherMethods $omInstance
     ) {
     }
 
@@ -104,6 +109,39 @@ class AllSelects
         $form->addButton($content[2], 0, "textures/items/map_filled");
         $form->addButton($content[3], 0, "textures/map/map_background");
 
+        $form->sendToPlayer($player);
+    }
+    public function selectLang(Player $player)
+    {
+        $form = new SimpleForm(function (Player $sender, int $data = null) {
+            $result = $data;
+            if ($result === null) {
+                return true;
+            }
+            $content = match ($result) {
+                1 => [
+                    'Russ',
+                    '§fТы выбрал русский язык!'
+                ],
+                2 => [
+                    'Eng',
+                    '§fYou have chosen English!'
+                ],
+                3 => [
+                    'DW',
+                    '§fSie haben Deutsch gewählt!'
+                ],
+                default => throw new InvalidArgumentException('Передан иной индекс, скорее
+                ошибка в новой кнопке')
+            };
+            $this->setterInstance->setSettings($sender, "Lang", $content[0]);
+            $sender->sendMessage($content[1]);
+            $this->omInstance->rebirthPlayer($sender);
+        });
+        $form->setTitle("§l§rChoose language");
+        $form->addButton("§lРусский", 0);
+        $form->addButton("§lEnglish", 1);
+        $form->addButton("§lDeutsche", 2);
         $form->sendToPlayer($player);
     }
 }

@@ -7,7 +7,7 @@ use InvalidArgumentException;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
-class OtherMethods
+final class OtherMethods
 {
 
     public function rebirthPlayer(Player $player): void

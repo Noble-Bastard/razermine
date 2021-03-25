@@ -7,14 +7,20 @@ use pocketmine\item\Item;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\EnchantmentInstance;
 
-class GivePlayer
+final class GivePlayer
 {
     private string $gappleItems = '310:0:1, 311:0:1, 312:0:1, 313:0:1, 276:0:1, 322:0:12';
 
     public function giveItems(Player $player, string $gameType)
     {
-        if (!in_array($gameType, ['Gapple', 'NoDebuff', 'Fist'])) {
-            throw new \Exception('далбаеб передавай правильный параметр');
+        if (
+            !in_array($gameType, [
+            'Gapple',
+            'NoDebuff',
+            'Fist'
+            ])
+        ) {
+            throw new \InvalidArgumentException('далбаеб передавай правильный параметр');
         }
 
         $player->getInventory()->clearAll();
@@ -29,7 +35,7 @@ class GivePlayer
             $items = [];
             $itemsAsArrayString = explode(', ', $this->gappleItems);
             foreach ($itemsAsArrayString as $itemString) {
-                list($id, $meta) = explode(':', $this->gappleItems);
+                list($id, $meta) = explode(':', $itemString);
                 $items[] = Item::get($id, $meta);
             }
             $inventory->addItem($items);

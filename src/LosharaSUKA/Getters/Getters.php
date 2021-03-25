@@ -1,5 +1,7 @@
 <?php
 
+namespace LosharaSUKA\Getters;
+
 use LosharaSUKA\Main;
 use pocketmine\utils\Config;
 

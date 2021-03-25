@@ -1,10 +1,12 @@
 <?php
 
+namespace LosharaSUKA\Setters;
+
 use LosharaSUKA\Main;
 use pocketmine\Player;
 use pocketmine\utils\Config;
 
-class Setters
+final class Setters
 {
     public function __construct(
         private Main $mainInstance,
