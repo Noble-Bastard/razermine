@@ -2,14 +2,14 @@
 
 namespace LosharaSUKA;
 
-use PDO;
-use PDOException;
+use LosharaSUKA\Events\EventListener;
+use LosharaSUKA\Getters\Getters;
+
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
-use pocketmine\item\Item;
 use pocketmine\utils\Config;
 use pocketmine\math\Vector3;
-use pocketmine\{Player, Server};
+use pocketmine\Player;
 use pocketmine\network\mcpe\protocol\{
     RemoveObjectivePacket,
     SetDisplayObjectivePacket,
@@ -33,7 +33,6 @@ use LosharaSUKA\Commands\{
 };
 
 use function round;
-use function count;
 
 class Main extends PluginBase implements Listener
 {
@@ -58,23 +57,22 @@ class Main extends PluginBase implements Listener
         ];
 
         foreach ($commands as $command) {
-                $this->getServer()->getCommandMap()->register($this->getName(), $command);
+            $this->getServer()->getCommandMap()->register($this->getName(), $command);
         }
     }
 
+    public $cfg; public $online;
+
     public $gaming = array();
-    public $cfg;
-    public $online;
-    private const ARRAY_MAX_SIZE = 100;
     public static $instance;
 
     /** @var array[] */
     private $clicksData = [];
 
-
-    public function onEnable()
+    public function onEnable(): void
     {
-        $this->getServer()->getPluginManager()->registerEvents(new \LosharaSUKA\Events\EventListener($this, new \Getters()), $this);
+        $this->getServer()->getPluginManager()->registerEvents(new EventListener(new Main()));
+
         $this->load();
         $this->getLogger()->info("§aВСЕ ОКЕЙ, БОСС!");
         if (!is_dir($this->getDataFolder())) {
