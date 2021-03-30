@@ -2,13 +2,18 @@
 
 namespace LosharaSUKA\Events;
 
-use InvalidArgumentException;
 use LosharaSUKA\Main;
 use LosharaSUKA\Tasks\TopsTask;
+use LosharaSUKA\Getters\Getters;
 use LosharaSUKA\OtherMethods\OtherMethods;
+
 use jojoe77777\FormAPI\SimpleForm;
+
+use InvalidArgumentException;
+
 use pocketmine\{Player, Server};
 use pocketmine\event\Listener;
+
 use pocketmine\event\player\{
     PlayerQuitEvent,
     PlayerJoinEvent,
@@ -17,21 +22,25 @@ use pocketmine\event\player\{
     PlayerExhaustEvent,
     PlayerCommandPreprocessEvent,
     PlayerChatEvent,
-    PlayerInteractEvent,
-    PlayerMoveEvent
+    PlayerInteractEvent
 };
+
 use pocketmine\event\block\{BlockBreakEvent, BlockPlaceEvent};
 use pocketmine\event\entity\{EntityDamageEvent, EntityDamageByEntityEvent};
+
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\mcpe\protocol\LoginPacket;
 
 class EventListener implements Listener
 {
+    public $mainInstance;
 
-    public function __construct(
-        private Main $mainInstance,
-        private \Getters $getterInstance
-    ) {
+    public function __construct(Main $mainInstance) {
+        $this->mainInstance = $mainInstance;
+    }
+
+    public function getMain() {
+        return $this->mainInstance;
     }
 
     public array $banCommand = [
