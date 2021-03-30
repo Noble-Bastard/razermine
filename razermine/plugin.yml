@@ -1,0 +1,9 @@
+---
+name: HubCores
+
+main: HubCore\Main
+api: 3.0.0
+
+author: Noblesse
+version: 1.0
+...
