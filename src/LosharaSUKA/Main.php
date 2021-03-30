@@ -71,7 +71,7 @@ class Main extends PluginBase implements Listener
 
     public function onEnable(): void
     {
-        $this->getServer()->getPluginManager()->registerEvents(new EventListener(new Main()));
+        $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
         $this->load();
         $this->getLogger()->info("§aВСЕ ОКЕЙ, БОСС!");
@@ -95,7 +95,6 @@ class Main extends PluginBase implements Listener
             $l->stopTime();
         }
         $this->topkills = new FloatingTextParticle(new Vector3(-34, 40, -29), "", "");
-        try {
             $this->db = new \SQLite3($this->getDataFolder() . "stats.db");
             $this->db->query("CREATE TABLE IF NOT EXISTS stats(
                                                          name TEXT NOT NULL,
@@ -121,10 +120,7 @@ class Main extends PluginBase implements Listener
                                                          Dus23 TEXT NOT NULL,
                                                          Dus4 TEXT NOT NULL,
                                                          Particle TEXT NOT NULL);");
-            echo "\nВсе норм бро \n";
-        } catch (\SQLiteException $exception) {
-            throw new \SQLiteException('Не удалось создать или подключиться к базе данных, админ даун');
-        }
+            echo "DataBase Load!! \n";
     }
 
     public static function getDataPath(): string
