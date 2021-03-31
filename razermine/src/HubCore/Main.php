@@ -29,14 +29,13 @@ class Main extends PluginBase
 
     public function onEnable(): void
     {
-
         $this->saveDefaultConfig();
         $this->config = $this->getConfig()->getAll();
 
         $this->saveResource("config.yml", true);
 
         $db = self::getDatabase();
-        $db->query("CREATE TABLE IF NOT EXISTS `data` (`username` text, `karma` int, `kills` int, `death` int, `lang` text)");
+        $db->query("CREATE TABLE IF NOT EXISTS `data` (`username` text, `karma` int, `group` text, `kills` int, `death` int, `lang` text)");
     }
 
     private static function setInstance(Main $instance): void
@@ -63,11 +62,11 @@ class Main extends PluginBase
     {
         $commands = [
             new AddKarma(self::getInstance(), new Utils(), "addkarma", "Выдача кармы", "operator"),
-            // new SetGroup($this, "setgroup", "Тебе не доступна данная команда", "operator"),
-            // new Groups("groups", "Тебе не доступна данная команда", "operator"),
-            // new Lobby($this, "lobby", "Back To Lobby", "operator", ['quit', 'leave', 'spawn']),
-            // new Prefix("prefix", "loа", "operator"),
-            // new Hub("hub", "Back To Lobby", "operator")
+            new SetGroup(self::getInstance(), new Utils(), "setgroup", "Тебе не доступна данная команда", "operator"),
+            new Groups("groups", "Тебе не доступна данная команда", "operator"),
+            new Lobby("lobby", "Back To Lobby", "operator", ['quit', 'leave', 'spawn']),
+            new Prefix("prefix", "loа", "operator"),
+            new Hub("hub", "Back To Lobby", "operator")
         ];
 
         foreach ($commands as $command) {
