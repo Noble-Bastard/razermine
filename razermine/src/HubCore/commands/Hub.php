@@ -3,7 +3,6 @@
 namespace HubCore\commands;
 
 use pocketmine\Player;
-
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 

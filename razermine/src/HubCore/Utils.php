@@ -6,10 +6,13 @@ namespace HubCore;
 
 class Utils
 {
+    public function __construct(private Main $mainInstance)
+    {
+    }
 
     public function getKarma(string $username): int
     {
-        $prepare = Main::getDatabase()->prepare("SELECT * FROM `data` WHERE username = :username");
+        $prepare = $this->mainInstance->database->prepare("SELECT * FROM `data` WHERE username = :username");
         $prepare->bindValue('username', $username);
 
         $resource = $prepare->execute()->fetchArray(1);
@@ -23,15 +26,15 @@ class Utils
 
     public function setKarma(string $username, int $amount): void
     {
-        $prepare = Main::getDatabase()->prepare("SELECT * FROM `data` WHERE username = :username");
+        $prepare = $this->mainInstance->database->prepare("SELECT * FROM `data` WHERE username = :username");
         $prepare->bindValue('username', $username);
 
         $resource = $prepare->execute()->fetchArray(1);
 
         if (is_bool($resource)) {
-            $prepare = Main::getDatabase()->prepare("INSERT INTO `data` (username, karma) VALUES (:username, :karma)");
+            $prepare = $this->mainInstance->database->prepare("INSERT INTO `data` (username, karma) VALUES (:username, :karma)");
         } else {
-            $prepare = Main::getDatabase()->prepare("UPDATE `data` SET karma = :karma WHERE username = :username");
+            $prepare = $this->mainInstance->database->prepare("UPDATE `data` SET karma = :karma WHERE username = :username");
         }
 
         $prepare->bindValue("username", $username);
@@ -41,15 +44,15 @@ class Utils
 
     public function setGroup(string $username, string $group): void
     {
-        $prepare = Main::getDatabase()->prepare("SELECT * FROM `data` WHERE username = :username");
+        $prepare = $this->mainInstance->database->prepare("SELECT * FROM `data` WHERE username = :username");
         $prepare->bindValue('username', $username);
 
         $resource = $prepare->execute()->fetchArray(1);
 
         if (is_bool($resource)) {
-            $prepare = Main::getDatabase()->prepare("INSERT INTO `data` (username, group) VALUES (:username, :group)");
+            $prepare = $this->mainInstance->database->prepare("INSERT INTO `data` (username, group) VALUES (:username, :group)");
         } else {
-            $prepare = Main::getDatabase()->prepare("UPDATE `data` SET group = :group WHERE username = :username");
+            $prepare = $this->mainInstance->database->prepare("UPDATE `data` SET group = :group WHERE username = :username");
         }
 
         $prepare->bindValue("username", $username);

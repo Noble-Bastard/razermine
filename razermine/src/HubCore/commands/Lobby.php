@@ -31,7 +31,7 @@ class Lobby extends Command
                 $sender->teleport(Main::getInstance()->getDefaultLevel()->getSafeSpawn());
                 // $this->Main($p);
             }
-        } 
+        }
         return true;
     }
 }
